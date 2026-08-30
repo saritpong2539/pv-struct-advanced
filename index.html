@@ -181,7 +181,7 @@
   .saveBtn:active{background:#3d75d0;}
 
   /* ---- Data / settings tab ---- */
-  #tabData{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 16px 60px;}
+  #tabData, #tabFormula{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 16px 60px;}
   .dataHead{margin-bottom:18px;}
   .dataHead h1{font-size:16px; margin:0 0 4px;}
   .dataHead .modeNote{font-family:var(--mono); font-size:10.5px; color:var(--solar);}
@@ -214,6 +214,10 @@
   .subTabBtn.active{background:var(--accent-dim); border-color:var(--accent); color:var(--text);}
   .subCount{font-family:var(--mono); font-size:10px; color:var(--text-faint);}
   .subTabBtn.active .subCount{color:var(--text-dim);}
+  .subStatusDot{width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--text-faint);}
+  .subStatusDot.green{background:var(--green);}
+  .subStatusDot.red{background:var(--red);}
+  .subStatusDot.grey{background:var(--text-faint);}
   .typeCard .secDesc{margin-bottom:12px;}
   .statusChip{font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px;}
   .statusChip.green{background:rgba(47,191,110,0.15); color:var(--green);}
@@ -264,6 +268,11 @@
   .liveCalcBox .lcItem{ font-size:11px; }
   .liveCalcBox .lcItem .lcLabel{ color:var(--text-faint); font-family:var(--mono); font-size:9.5px; text-transform:uppercase; }
   .liveCalcBox .lcItem .lcVal{ color:var(--amber); font-family:var(--mono); font-size:13px; margin-top:2px; }
+  .fixBox{
+    background:rgba(229,83,61,0.08); border:1px solid var(--red); border-radius:10px;
+    padding:10px 12px; margin:10px 0 4px;
+  }
+  .fixBox .groupLabel{ color:var(--red); margin-top:0; }
 
   .pillRow{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px; }
   .pillRow.sizeGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); }
@@ -305,6 +314,17 @@
   .summaryTable td:last-child{ text-align:right; font-family:var(--mono); color:var(--text); }
   .summaryTable tr.stTotal td{ color:var(--amber); font-weight:700; border-bottom:none; padding-top:7px; }
 
+  .formulaBox{
+    font-family:var(--mono); font-size:12px; line-height:1.9; color:var(--amber);
+    background:var(--panel-2); border:1px solid var(--border); border-radius:8px;
+    padding:10px 12px; margin:8px 0; white-space:pre-wrap; word-break:break-word;
+  }
+  .formulaBox .fVar{ color:var(--accent); }
+  .sourceNote{
+    font-family:var(--mono); font-size:10px; color:var(--text-faint);
+    border-top:1px dashed var(--border); margin-top:10px; padding-top:8px;
+  }
+
   .dataSubPanel{ display:none; }
   .dataSubPanel.active{ display:block; }
 
@@ -330,7 +350,7 @@
   @media (min-width:700px){
     #tabsBar{ padding:10px 16px; gap:10px; }
     .tabBtn{ flex:0 1 220px; }
-    #tabData{ padding:22px 32px 60px; }
+    #tabData, #tabFormula{ padding:22px 32px 60px; }
     .dataSection{ padding:20px 24px; }
     .cardList{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:12px; }
     .liveCalcBox{ grid-template-columns:repeat(4,1fr); }
@@ -340,7 +360,7 @@
   }
   @media (min-width:1100px){
     #tabsBar{ max-width:1100px; margin:0 auto; width:100%; }
-    #tabData{ max-width:1000px; margin:0 auto; padding:28px 20px 70px; }
+    #tabData, #tabFormula{ max-width:1000px; margin:0 auto; padding:28px 20px 70px; }
     .dataSection{ padding:22px 28px; }
     .cardList{ grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); }
     .row2 > *, .row3 > *{ flex:1 1 0; }
@@ -439,6 +459,10 @@
     <button class="tabBtn" id="tabBtnData" data-tab="data">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
       ข้อมูล/ตั้งค่า
+    </button>
+    <button class="tabBtn" id="tabBtnFormula" data-tab="formula">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 3h16v4H4z"></path><path d="M4 21l6-9-6-9"></path><path d="M20 21l-6-9 6-9"></path></svg>
+      สูตรคำนวณ
     </button>
   </div>
 
@@ -563,10 +587,10 @@
 
       <!-- ============ แท็บย่อย: ข้อมูลร่วม / แป / จันทัน / โครงถัก ============ -->
       <div class="subTabsBar">
-        <button class="subTabBtn active" data-sub="shared">1 ข้อมูลร่วม</button>
-        <button class="subTabBtn" data-sub="purlin">2 แป <span class="subCount" id="subCountPurlin">0</span></button>
-        <button class="subTabBtn" data-sub="rafter">3 จันทัน <span class="subCount" id="subCountRafter">0</span></button>
-        <button class="subTabBtn" data-sub="truss">4 โครงถัก <span class="subCount" id="subCountTruss">0</span></button>
+        <button class="subTabBtn active" data-sub="shared"><span class="subStatusDot grey" id="dotShared"></span>1 ข้อมูลร่วม</button>
+        <button class="subTabBtn" data-sub="purlin"><span class="subStatusDot grey" id="dotPurlin"></span>2 แป <span class="subCount" id="subCountPurlin">0</span></button>
+        <button class="subTabBtn" data-sub="rafter"><span class="subStatusDot grey" id="dotRafter"></span>3 จันทัน <span class="subCount" id="subCountRafter">0</span></button>
+        <button class="subTabBtn" data-sub="truss"><span class="subStatusDot grey" id="dotTruss"></span>4 โครงถัก <span class="subCount" id="subCountTruss">0</span></button>
       </div>
 
       <!-- ---- ข้อมูลร่วม (กรอกครั้งเดียว ใช้ทุกแท็บถัดไป) ---- -->
@@ -628,22 +652,10 @@
         </div>
         <div class="fieldHelp">4 ค่านี้คำนวณสดจากข้อมูลด้านบนให้อัตโนมัติ — แท็บแป/จันทัน/โครงถักใช้ค่าเดียวกันนี้ ไม่ต้องกรอกซ้ำ</div>
 
+        <div class="fieldHelp" style="margin:6px 0 0;">โมเดล 3D อัปเดตให้อัตโนมัติทันทีที่แก้ค่าด้านบน (ไม่ต้องกดปุ่มยืนยัน)</div>
         <div class="modalBtns">
-          <button class="btnGhost" id="resetSettingsBtn">คืนค่าเดิม</button>
-          <button class="btnPrimary" id="applySettingsBtn">สร้าง/อัปเดตแบบจำลอง</button>
+          <button class="btnGhost" id="resetSettingsBtn">รีเซ็ตเป็นค่าเริ่มต้น</button>
         </div>
-
-        <div class="groupLabel">ชั้นซ้อนแป / จันทัน / โครงถัก — ใครวางบนใคร</div>
-        <svg viewBox="0 0 320 100" style="width:100%;height:auto;display:block;">
-          <rect x="20" y="60" width="280" height="22" rx="3" fill="none" stroke="#4f8ff0" stroke-width="2.5"/>
-          <rect x="45" y="35" width="230" height="16" rx="3" fill="none" stroke="#f0a83c" stroke-width="2.5"/>
-          <rect x="70" y="12" width="190" height="12" rx="3" fill="none" stroke="#8b5cf6" stroke-width="2.5"/>
-          <line x1="20" y1="71" x2="45" y2="43" stroke="#26323f" stroke-width="1" stroke-dasharray="2 2"/>
-          <line x1="300" y1="71" x2="275" y2="43" stroke="#26323f" stroke-width="1" stroke-dasharray="2 2"/>
-          <line x1="45" y1="43" x2="70" y2="18" stroke="#26323f" stroke-width="1" stroke-dasharray="2 2"/>
-          <line x1="275" y1="43" x2="260" y2="18" stroke="#26323f" stroke-width="1" stroke-dasharray="2 2"/>
-        </svg>
-        <div class="fieldHelp">ล่างสุด = โครงถัก (ฟ้า) → กลาง = จันทัน (ส้ม วางขวางบนโครงถัก) → บนสุด = แป (ม่วง วางขวางบนจันทันอีกที)</div>
       </div>
       </div>
 
@@ -771,8 +783,38 @@
             </div>
           </div>
           <div class="field">
-            <label>ขนาด (C Channel)</label>
+            <label id="purlinSizeLabel">ขนาด (C Channel)</label>
             <div class="pillRow sizeGrid" data-field="purlinSize" id="purlinSizeGrid"></div>
+          </div>
+          <div class="field">
+            <label>ประกบแป</label>
+            <div class="pillRow" data-field="purlinDouble">
+              <button type="button" class="pillBtn active" data-value="no">แปเดี่ยว</button>
+              <button type="button" class="pillBtn" data-value="yes">ประกบ 2 ตัว (2C)</button>
+            </div>
+            <div class="fieldHelp">ประกบ 2 ตัว = กำลังรับโมเมนต์/แรงเฉือนเพิ่มเป็น 2 เท่า (น้ำหนักตัวเองก็เพิ่ม 2 เท่าเช่นกัน)</div>
+          </div>
+
+          <div class="groupLabel">ผลรวมแป (ภาพรวมทุกชิ้น — worst case)</div>
+          <div class="liveCalcBox" id="purlinResultBox">
+            <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="purlinResultRatio">–</div></div>
+            <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="purlinResultVerdict">–</div></div>
+            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="purlinUpliftVal">–</div></div>
+            <div class="lcItem"><div class="lcLabel">เช็คโก่งตัว (Deflection ≤ L/120)</div><div class="lcVal" id="purlinDeflVal">–</div></div>
+          </div>
+
+          <div class="fixBox" id="purlinFixBox" style="display:none;">
+            <div class="groupLabel">⚠️ แนะนำการแก้ไข — แปบางชิ้นเกินพิกัด (แรงดัด/แรงเฉือน หรือโก่งตัวเกิน)</div>
+            <div class="fieldHelp">ลองปรับ 2 อย่างนี้ แล้วดูผลใหม่ทันที (ไม่ต้องกดปุ่ม):</div>
+            <div class="field">
+              <label>1. เปลี่ยน SAG Rod (ช่วยเรื่องแรงดัด — ไม่ช่วยเรื่องโก่งตัว)</label>
+              <div class="pillRow" id="fixSagRodBtns">
+                <button type="button" class="pillBtn" data-sagquick="none">ไม่มี</button>
+                <button type="button" class="pillBtn" data-sagquick="1">1 ตัว (L/2)</button>
+                <button type="button" class="pillBtn" data-sagquick="2">2 ตัว (L/3)</button>
+              </div>
+            </div>
+            <div class="fieldHelp">2. หรือกด "ประกบ 2 ตัว (2C)" ด้านบน / เลือกขนาดใหญ่ขึ้น — ช่วยได้ทั้งแรงดัด แรงเฉือน และโก่งตัว</div>
           </div>
         </div>
         </div>
@@ -819,8 +861,21 @@
             </div>
           </div>
           <div class="field">
-            <label>ขนาด (C Channel)</label>
+            <label id="rafterSizeLabel">ขนาด (C Channel)</label>
             <div class="pillRow sizeGrid" data-field="rafterSize" id="rafterSizeGrid"></div>
+          </div>
+
+          <div class="groupLabel">ผลรวมจันทัน (ภาพรวมทุกชิ้น — worst case)</div>
+          <div class="liveCalcBox" id="rafterResultBox">
+            <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="rafterResultRatio">–</div></div>
+            <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="rafterResultVerdict">–</div></div>
+            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="rafterUpliftVal">–</div></div>
+            <div class="lcItem"><div class="lcLabel">เช็คโก่งตัว (Deflection ≤ L/120)</div><div class="lcVal" id="rafterDeflVal">–</div></div>
+          </div>
+
+          <div class="fixBox" id="rafterFixBox" style="display:none;">
+            <div class="groupLabel">⚠️ แนะนำการแก้ไข — จันทันบางชิ้นเกินพิกัด</div>
+            <div class="fieldHelp">ลองกด "C Channel ประกบ (2C)" ด้านบน — เพิ่มกำลังรับแรงเป็น 2 เท่า แล้วดูผลใหม่ทันที (ไม่ต้องกดปุ่ม) หรือเลือกขนาดที่ใหญ่ขึ้น</div>
           </div>
         </div>
         </div>
@@ -991,17 +1046,46 @@
           </div>
           <div class="fieldHelp">ปัจจุบันโมเดล 3D ยังใช้ค่าค้ำยัน (web) ร่วมกันสำหรับ Diagonal — ยังไม่แยกคำนวณต่างหาก</div>
 
-          <div class="groupLabel">ประเภทหน้าตัดเหล็ก (อ้างอิง — ใช้เลือกวัสดุในการ์ดด้านล่าง)</div>
-          <div class="miniIconGrid">
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><path d="M42 10 H16 V50 H42" fill="none" stroke="#4f8ff0" stroke-width="4" stroke-linejoin="round"/></svg><div class="micLabel">C-Channel</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><rect x="8" y="15" width="44" height="30" fill="none" stroke="#4f8ff0" stroke-width="3"/><rect x="15" y="21" width="30" height="18" fill="none" stroke="#4f8ff0" stroke-width="1.5" opacity="0.55"/></svg><div class="micLabel">RHS</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><rect x="12" y="12" width="36" height="36" fill="none" stroke="#4f8ff0" stroke-width="3"/><rect x="19" y="19" width="22" height="22" fill="none" stroke="#4f8ff0" stroke-width="1.5" opacity="0.55"/></svg><div class="micLabel">SHS</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="21" fill="none" stroke="#4f8ff0" stroke-width="3"/><circle cx="30" cy="30" r="14" fill="none" stroke="#4f8ff0" stroke-width="1.5" opacity="0.55"/></svg><div class="micLabel">เหล็กกลม</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><path d="M15 10 V50 H45" fill="none" stroke="#4f8ff0" stroke-width="4" stroke-linejoin="round"/></svg><div class="micLabel">เหล็กฉาก (L)</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><path d="M20 10 V50 H37" fill="none" stroke="#4f8ff0" stroke-width="4" stroke-linejoin="round"/><path d="M40 10 V50 H23" fill="none" stroke="#f0a83c" stroke-width="4" stroke-linejoin="round" opacity="0.85"/></svg><div class="micLabel">ฉากประกบ (2L)</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><line x1="15" y1="10" x2="45" y2="10" stroke="#4f8ff0" stroke-width="4"/><line x1="30" y1="10" x2="30" y2="50" stroke="#4f8ff0" stroke-width="4"/><line x1="15" y1="50" x2="45" y2="50" stroke="#4f8ff0" stroke-width="4"/></svg><div class="micLabel">I-Beam</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><line x1="9" y1="10" x2="51" y2="10" stroke="#4f8ff0" stroke-width="4"/><line x1="30" y1="10" x2="30" y2="50" stroke="#4f8ff0" stroke-width="4"/><line x1="9" y1="50" x2="51" y2="50" stroke="#4f8ff0" stroke-width="4"/></svg><div class="micLabel">H-Beam</div></div>
-            <div class="miniIconCard refOnly"><svg viewBox="0 0 60 60"><line x1="15" y1="10" x2="45" y2="10" stroke="#4f8ff0" stroke-width="4"/><line x1="30" y1="10" x2="30" y2="50" stroke="#4f8ff0" stroke-width="4"/></svg><div class="micLabel">Cut Beam</div></div>
+          <div class="groupLabel">ตงบน (Top Chord)</div>
+          <div class="field">
+            <label>หมวดหมู่</label>
+            <div class="pillRow" data-field="topChordCat" id="topChordCatGrid"></div>
+          </div>
+          <div class="field">
+            <label>ขนาด</label>
+            <div class="pillRow sizeGrid" data-field="topChordSize" id="topChordSizeGrid"></div>
+          </div>
+
+          <div class="groupLabel">ตงล่าง (Bottom Chord)</div>
+          <div class="field">
+            <label>หมวดหมู่</label>
+            <div class="pillRow" data-field="bottomChordCat" id="bottomChordCatGrid"></div>
+          </div>
+          <div class="field">
+            <label>ขนาด</label>
+            <div class="pillRow sizeGrid" data-field="bottomChordSize" id="bottomChordSizeGrid"></div>
+          </div>
+
+          <div class="groupLabel">ค้ำยัน / ทแยง (Web / Diagonal)</div>
+          <div class="field">
+            <label>หมวดหมู่</label>
+            <div class="pillRow" data-field="webCat" id="webCatGrid"></div>
+          </div>
+          <div class="field">
+            <label>ขนาด</label>
+            <div class="pillRow sizeGrid" data-field="webSize" id="webSizeGrid"></div>
+          </div>
+          <div class="fieldHelp">⚠️ ค้ำยัน/ทแยงใช้หน้าตัดเดียวกัน — คำนวณแบบอนุรักษ์นิยม (ใช้แรงที่มากกว่าระหว่างค้ำยันแนวดิ่งกับทแยงกับทุกชิ้น เพราะยังแยกชนิดที่แท้จริงจากตำแหน่ง 3D ไม่ได้)</div>
+
+          <div class="groupLabel">ผลรวมโครงถัก (ภาพรวมทุกชิ้น — worst case)</div>
+          <div class="liveCalcBox" id="trussResultBox">
+            <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="trussResultRatio">–</div></div>
+            <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="trussResultVerdict">–</div></div>
+            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="trussUpliftVal">–</div></div>
+          </div>
+          <div class="fixBox" id="trussFixBox" style="display:none;">
+            <div class="groupLabel">⚠️ แนะนำการแก้ไข — โครงถักบางชิ้นเกินพิกัด</div>
+            <div class="fieldHelp">ลองเลือกขนาดที่ใหญ่ขึ้น หรือเปลี่ยนหมวดหมู่ (เช่น H-Beam/WF มักรับแรงได้มากกว่า RHS/มุมเดี่ยวขนาดเล็ก) แล้วดูผลใหม่ทันที</div>
           </div>
         </div>
         </div>
@@ -1021,6 +1105,123 @@
       </div>
       </div>
 
+    </div>
+
+    <!-- ============ TAB: สูตรคำนวณ ============ -->
+    <div class="tabPanel" id="tabFormula">
+      <div class="dataHead">
+        <h1>สูตรคำนวณ</h1>
+        <div class="modeNote">เอกสารอ้างอิง (แก้ไขแล้วเป็น ASD ล้วน) — เชื่อมกับโมเดล 3D จริงแล้ว (แป/จันทัน/โครงถัก + เช็คลมดูด)</div>
+      </div>
+
+      <div class="disclaimerBox">
+        📋 <b>สูตรในหน้านี้เชื่อมกับการคำนวณ utilization ในโมเดล 3D จริงแล้ว</b> — แกะมาจากเครื่องคำนวณเดิมของโปรเจกต์ (<code>index_v2.html</code> ที่ root) แล้ว<b>ตรวจสอบ+แก้ไขให้เป็นระบบ ASD ล้วนๆ</b>ตามที่พบว่าต้นฉบับผสม ASD กับ LRFD ปนกัน
+        (ดูหัวข้อ "สรุปการแก้ไข" ท้ายหน้า) — ยังเป็นการตรวจทานโดย AI ไม่ใช่วิศวกรที่มีใบอนุญาต ต้องให้วิศวกรที่มีใบอนุญาตตรวจทานก่อนใช้งานจริงเสมอ
+      </div>
+
+      <div class="dataSection">
+        <h2>ค่าคงที่วัสดุ + หน่วยแรงที่ยอมให้ (Allowable Stress — ASD)</h2>
+        <table class="summaryTable">
+          <tr><td>Fy — กำลังครากของเหล็ก (เกรด SS400)</td><td>2,400 กก./ซม²</td></tr>
+          <tr><td>E — โมดูลัสยืดหยุ่นของเหล็ก</td><td>2,039,000 กก./ซม²</td></tr>
+          <tr><td>Fb — หน่วยแรงดัดที่ยอมให้ = 0.6×Fy</td><td>1,440 กก./ซม²</td></tr>
+          <tr><td>Fv — หน่วยแรงเฉือนที่ยอมให้ = 0.4×Fy</td><td>960 กก./ซม²</td></tr>
+          <tr><td>Ωt — Factor of safety แรงดึง (tension)</td><td>1.67</td></tr>
+          <tr><td>Ωc — Factor of safety แรงอัด/โก่งเดาะ (compression)</td><td>1.67</td></tr>
+        </table>
+        <div class="fieldHelp">แก้ Fy จาก 2,448 → 2,400 ให้ตรงมาตรฐาน SS400 ทั่วไป และให้ตรงกับ Fb=1,440 ที่แอปนี้ใช้เป็นค่าเริ่มต้นอยู่แล้ว (1,440 = 0.6×2,400 พอดี)</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>Load Combination (ASD — ASCE7 §2.4) — ต้องเช็คทั้งกรณีลมกด และลมดูด</h2>
+        <div class="formulaBox">(1)  DL + LL
+(2a) DL + 0.75×(LL + WL)      ← WL เป็น + (ลมกดลง)
+(2b) 0.6×DL − WL              ← WL เป็น − (ลมดูดขึ้น = uplift)
+โหลดออกแบบ (แรงดัด/แรงเฉือนปกติ) = MAX(1, 2a)
+เช็คลมดูด (uplift) แยกต่างหาก = (2b) ต้องยังเป็นบวก (โครงสร้างไม่ปลิว)</div>
+        <div class="fieldHelp">⚠️ <b>แก้จากต้นฉบับ:</b> เดิมเขียน "0.6DL+WL" เป็นบวกทั้งคู่ ไม่ชัดว่าเช็คลมดูดหรือไม่ — ของจริง WL ต้องมีเครื่องหมายตามทิศทาง (2b) มีไว้เช็คกรณีลมดูดขึ้นสวนน้ำหนักคงที่ที่ลดลงเหลือ 0.6DL โดยเฉพาะ เป็นตัวคุมสำคัญสำหรับหลังคาเบา (เมทัลชีต) ที่มักปลิวจากลมดูด ไม่ใช่ลมกด</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>แรงลม (Wind Load) — ตาราง lookup ตามภูมิประเทศ + ความสูงอาคาร</h2>
+        <table class="summaryTable">
+          <tr><td>เมือง/ชานเมือง — สูง ≤ 10 ม.</td><td>50 กก./ตร.ม.</td></tr>
+          <tr><td>เมือง/ชานเมือง — สูง ≤ 20 ม.</td><td>80 กก./ตร.ม.</td></tr>
+          <tr><td>เมือง/ชานเมือง — สูง &gt; 20 ม.</td><td>120 กก./ตร.ม.</td></tr>
+          <tr><td>โล่ง/ชายฝั่ง — สูง ≤ 10 ม.</td><td>100 กก./ตร.ม.</td></tr>
+          <tr><td>โล่ง/ชายฝั่ง — สูง ≤ 20 ม.</td><td>120 กก./ตร.ม.</td></tr>
+          <tr><td>โล่ง/ชายฝั่ง — สูง &gt; 20 ม.</td><td>150 กก./ตร.ม.</td></tr>
+        </table>
+        <div class="fieldHelp">ยังเป็นตารางประมาณ ไม่ใช่สูตรเต็มรูปแบบตาม มยผ.1311-50 (ที่ต้องมีสัมประสิทธิ์แรงลมตามรูปทรง/โซนขอบ-มุม, importance factor, gust factor) — ค่านี้คือขนาด |WL| เอาไปใส่เครื่องหมายเองตามกรณี (2a)/(2b) ด้านบน</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>แป (Purlin) — Biaxial Bending (ASD)</h2>
+        <div class="secDesc">แยกแรงตามแนวลาดหลังคาเป็น 2 แกน (Mx = แกนแข็งของหน้าตัด, My = แกนอ่อน) ไม่ใช่แกนเดียวแบบที่โมเดล 3D ใช้อยู่ตอนนี้</div>
+        <div class="warnBox">📌 พบที่มาของ "+20" แล้ว: เป็น <b>โหลดแผงโซล่าเซล ล็อคค่าคงที่ 20 กก./ตร.ม.</b> (ต้นฉบับตั้งใจไม่ให้แก้ไข — มีช่อง readonly ระบุไว้ชัดเจน) ตัดสินใจแล้วว่าตอน wiring จริงจะ<b>ใช้ค่า 20 คงที่ตามเครื่องคำนวณเดิม</b> แทนช่อง "โหลดโซล่าเซล" ที่ผู้ใช้แก้ไขได้ (default 12) ในแท็บข้อมูล/ตั้งค่าปัจจุบัน — ยังไม่ได้ wiring จริง รอดำเนินการทีหลัง</div>
+        <div class="formulaBox">w  = โหลดออกแบบ (governing) × ระยะห่างแป
+wx = w × cos(มุมหลังคา)     wy = w × sin(มุมหลังคา)
+Mx = wx × L² / 8            My = wy × Ley² / 8      (Ley = L × ตัวคูณ SAG rod)
+Mrx = Fb × Zx                Mry = Fb × Zy           ← แก้จาก φ×Fy×Z เป็น Fb×Z (ASD)
+เช็คแรงเฉือน: Va = Fv × Av              ← แก้จาก 0.6×Fy×Av เป็น Fv(=0.4Fy)×Av
+เช็คโก่งตัว:  δ = 5×w×L⁴ / (384×E×Ix)   [ทุกหน่วยเป็น cm: w=kgf/cm, L=cm, E=kgf/cm², Ix=cm⁴ ตรงๆ]
+             δ ≤ L / 120                ← แก้: ลบตัวคูณ ×10,000 ที่ผิดออกจาก Ix (ดู "สรุปการแก้ไข")
+อัตราส่วนรวม: Mx/Mrx + My/Mry ≤ 1  และ  Vx/Va ≤ 1</div>
+        <div class="formulaBox">ตัวคูณ SAG rod (Ley = L × ค่านี้):
+ไม่มี = 1.0     1 ตัว (L/2) = 0.5     2 ตัว (L/3) = 0.333</div>
+        <div class="fieldHelp">ถ้าคำนวณแล้วไม่ผ่าน แนะนำเพิ่ม SAG rod หรือใช้แปประกบ 2 ตัว (ตามแนวทางต้นฉบับ)</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>จันทัน (Rafter) — รับโหลดต่อจากแป (chain จริง) (ASD)</h2>
+        <div class="secDesc">จุดสำคัญ: DL/LL/WL ของจันทัน "สืบทอด" มาจากผลคำนวณแปโดยตรง ไม่ได้แยกคำนวณอิสระ — ตรงตาม load path ที่ตั้งใจไว้</div>
+        <div class="formulaBox">DL(จันทัน) = DL(จากแป) + น้ำหนักจันทันเอง
+w = governing(DL,LL,WL) × ระยะห่างจันทัน
+M = wL²/8      Mr = Fb×Zx     เช็ค: M/Mr ≤ 1     ← แก้จาก φ×Fy×Zx
+V = wL/2       Va = Fv×Av     เช็ค: V/Va ≤ 1     ← แก้จาก 0.6×Fy×Av
+เช็คโก่งตัว: δ = 5×w×L⁴/(384×E×Ix) ≤ L/120        ← แก้: ลบตัวคูณ ×10,000 ที่ผิดออกจาก Ix เช่นกัน</div>
+        <div class="fieldHelp">ถ้าจันทันเดี่ยวไม่ผ่าน คำนวณซ้ำแบบประกบ 2 ตัว (มัลติพลายเออร์ ×2 กับ Zx, Ix, พื้นที่เฉือน) ตามแนวทางต้นฉบับ</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>โครงถัก (Truss) — Axial Force Method (ASD) + เช็คโก่งเดาะ</h2>
+        <div class="secDesc">🎯 จุดที่ต่างจากโมเดล 3D ปัจจุบันมากที่สุด — ของเดิมยืมสูตร beam-bending มาใช้กับตงบน/ตงล่าง/ค้ำยัน (ไม่ตรงหลักวิศวกรรม) ส่วนสูตรนี้คำนวณแรงตามแนวแกนจริงจากจุดต่อ</div>
+        <div class="formulaBox">M_max = w × L² / 8        (L = ช่วงโครงถักสุทธิ หลังหักเสากลางถ้ามี)
+R     = w × L / 2         (ปฏิกิริยา/แรงเฉือนรวม)
+
+แรงตามแนวแกน:
+F_TC = F_BC = M_max / ความลึกโครงถัก     (ตงบน/ตงล่าง รับแรงเป็นคู่แรงจาก moment)
+F_web  = R                                (ค้ำยันแนวดิ่ง — ค่าอนุรักษ์นิยม ใช้ R สูงสุดทุกตัว)
+F_diag = R / sin(มุมทแยง)                 (ถ้ามี diagonal)</div>
+        <div class="formulaBox">กำลังรับ "แรงดึง" (ตงล่าง/ชิ้นที่ถูกดึง):
+Pa_tension = Fy × A / Ωt                  ← แก้จาก φ×Fy×A
+
+กำลังรับ "แรงอัด" (ตงบน/ทแยงที่ถูกอัด) — ต้องเช็คโก่งเดาะด้วย ไม่ใช่แค่ครากอย่างเดียว:
+r  = √(I / A)                             ← รัศมีไจเรชัน (ใช้แกนอ่อนสุดถ้ามีข้อมูล)
+Fe = π²E / (KL/r)²                        (K=1.0 สำหรับปลายหมุนอิสระทั้งสองข้าง)
+ถ้า KL/r ≤ 4.71√(E/Fy):  Fcr = 0.658^(Fy/Fe) × Fy      (โก่งเดาะแบบไม่ยืดหยุ่น)
+ถ้ามากกว่า:              Fcr = 0.877 × Fe                (โก่งเดาะแบบยืดหยุ่น)
+Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหมด ต้นฉบับไม่มีเลย
+
+อัตราส่วน:  r = F / Pa ≤ 1.0   (เลือก Pa_tension หรือ Pa_compression ตามทิศแรงจริงของแต่ละชิ้น)</div>
+        <div class="fieldHelp">⚠️ <b>เพิ่มใหม่ทั้งหมด:</b> ต้นฉบับเช็คแค่การครากของหน้าตัด (Pr=φFyA) ไม่มีการเช็คโก่งเดาะเลย — ชิ้นส่วนรับแรงอัดที่เรียว/ยาว (ค้ำยัน/ทแยงส่วนใหญ่) มักวิบัติจากโก่งเดาะก่อนถึงจุดครากเสมอ จำเป็นต้องเช็คคู่กัน</div>
+      </div>
+
+      <div class="dataSection">
+        <h2>สรุปการแก้ไข (เทียบต้นฉบับ index_v2.html)</h2>
+        <table class="summaryTable">
+          <tr><td>ปรัชญาการออกแบบ</td><td>ผสม ASD+LRFD → แก้เป็น ASD ล้วน</td></tr>
+          <tr><td>Fy</td><td>2,448 → 2,400 กก./ซม²</td></tr>
+          <tr><td>กำลังรับแรงดัด (Mr)</td><td>φ×Fy×Z → Fb×Z (Fb=0.6Fy)</td></tr>
+          <tr><td>กำลังรับแรงเฉือน (Va)</td><td>0.6×Fy×Av → Fv×Av (Fv=0.4Fy)</td></tr>
+          <tr><td>กำลังรับแรงดึงโครงถัก</td><td>φ×Fy×A → Fy×A/Ωt (Ωt=1.67)</td></tr>
+          <tr><td>กำลังรับแรงอัดโครงถัก</td><td>φ×Fy×A (ไม่เช็คโก่งเดาะ) → เพิ่มสูตร Fcr/Ωc เต็มรูปแบบ</td></tr>
+          <tr><td>ทิศทางแรงลม (uplift)</td><td>WL บวกทั้งคู่ (ไม่ชัด) → แยก (2a)=ลมกด(+), (2b)=ลมดูด(−) ชัดเจน</td></tr>
+          <tr><td>หน่วยเช็คโก่งตัว (แป+จันทัน)</td><td>Ix×10,000 (หน่วยผิด ทำให้ δ เล็กเกินจริง 10,000 เท่า → ผ่านทั้งที่ไม่ควรผ่าน) → ลบตัวคูณผิดออก ใช้ Ix (cm⁴) ตรงๆ</td></tr>
+        </table>
+        <div class="fieldHelp">⚠️ บั๊กหน่วยจุดนี้อันตรายเป็นพิเศษ เพราะทำให้การเช็คโก่งตัว "ดูเหมือนผ่านเสมอ" แม้ตัวชิ้นส่วนจะโก่งเกินพิกัดจริงในสนาม — เจอจากการไล่หน่วยเทียบ Ix ในตารางเหล็ก (เป็น cm⁴ อยู่แล้ว) กับตัวแปร E ที่เป็น kgf/cm²</div>
+        <div class="sourceNote">แกะจาก: index_v2.html (root) — ฟังก์ชัน getGovCombo, getWL, doPurlinCalc, doRafterCalc, calcTruss · ตรวจ+แก้ไข 2026-08-30 (โดย AI ไม่ใช่วิศวกรที่มีใบอนุญาต — ต้องให้วิศวกรตรวจทานก่อนใช้งานจริงเสมอ)</div>
+      </div>
     </div>
 
   </div>
@@ -1104,6 +1305,70 @@
     purlin:      { label:"แป (Purlin)",            radius:0.045, S:15, tribKind:'panel' },
     rafter:      { label:"จันทัน (Rafter)",        radius:0.05,  S:22, tribKind:'bay'   }
   };
+  /* ============ ฐานข้อมูลคุณสมบัติเหล็กจริง (ported จาก index_v2.html) ============
+     zx,zy = section modulus (cm³) · ix = moment of inertia (cm⁴) · tw = ความหนาเอว (mm) · h = ความสูงหน้าตัด (mm)
+     nw = จำนวนเอวรับแรงเฉือน · wt = น้ำหนักต่อเมตร (kg/m) · A = พื้นที่หน้าตัด (cm²) — ใช้กับชิ้นส่วนโครงถัก (axial) */
+  var STEEL_SECTIONS = {
+    C_DATA:[
+      {v:'C60t16',l:'C 60×30×10 t=1.6',zx:3.28,zy:0.73,ix:9.85,tw:1.6,h:60,nw:1,wt:1.63},
+      {v:'C75t20',l:'C 75×45×15 t=2.0',zx:7.43,zy:2.13,ix:27.9,tw:2.0,h:75,nw:1,wt:2.86},
+      {v:'C75t23',l:'C 75×45×15 t=2.3',zx:8.38,zy:2.40,ix:31.4,tw:2.3,h:75,nw:1,wt:3.25},
+      {v:'C90t23',l:'C 90×45×20 t=2.3',zx:12.1,zy:2.63,ix:54.4,tw:2.3,h:90,nw:1,wt:3.70},
+      {v:'C90t32',l:'C 90×45×20 t=3.2',zx:16.2,zy:3.50,ix:72.8,tw:3.2,h:90,nw:1,wt:5.00},
+      {v:'C100t23',l:'C 100×50×20 t=2.3',zx:15.5,zy:3.16,ix:77.4,tw:2.3,h:100,nw:1,wt:4.06},
+      {v:'C100t32',l:'C 100×50×20 t=3.2',zx:20.9,zy:4.25,ix:104,tw:3.2,h:100,nw:1,wt:5.50},
+      {v:'C100t40',l:'C 100×50×20 t=4.0',zx:25.5,zy:5.18,ix:127,tw:4.0,h:100,nw:1,wt:6.71},
+      {v:'C125t32',l:'C 125×50×20 t=3.2',zx:33.8,zy:4.99,ix:211,tw:3.2,h:125,nw:1,wt:6.13},
+      {v:'C125t45',l:'C 125×50×20 t=4.5',zx:45.7,zy:6.74,ix:286,tw:4.5,h:125,nw:1,wt:8.32},
+      {v:'C150t32',l:'C 150×75×25 t=3.2',zx:57.5,zy:11.5,ix:431,tw:3.2,h:150,nw:1,wt:8.27},
+      {v:'C150t45',l:'C 150×75×25 t=4.5',zx:79.2,zy:15.8,ix:594,tw:4.5,h:150,nw:1,wt:11.3},
+      {v:'C200t32',l:'C 200×75×25 t=3.2',zx:92.0,zy:11.3,ix:920,tw:3.2,h:200,nw:1,wt:9.52},
+      {v:'C200t45',l:'C 200×75×25 t=4.5',zx:127,zy:15.5,ix:1270,tw:4.5,h:200,nw:1,wt:13.1},
+      {v:'C250t45',l:'C 250×75×25 t=4.5',zx:188,zy:14.9,ix:2350,tw:4.5,h:250,nw:1,wt:14.9}
+    ],
+    // RHS/SHS สำหรับแป/จันทัน (bending — มี zy/tw/h/nw ครบ ต่างจาก TSEC.rhs/shs ที่มีแค่ A/ix สำหรับโครงถัก)
+    RHS_BEND_DATA:[
+      {v:'R50',l:'RHS 50×25 t=1.6',zx:3.39,zy:2.13,ix:8.47,tw:1.6,h:50,nw:2,wt:1.75},
+      {v:'R75',l:'RHS 75×45 t=2.3',zx:13.7,zy:9.68,ix:51.4,tw:2.3,h:75,nw:2,wt:4.06},
+      {v:'R100a',l:'RHS 100×50 t=2.3',zx:27.3,zy:15.0,ix:137,tw:2.3,h:100,nw:2,wt:5.14},
+      {v:'R100b',l:'RHS 100×50 t=3.2',zx:37.2,zy:20.4,ix:186,tw:3.2,h:100,nw:2,wt:7.01},
+      {v:'R125',l:'RHS 125×75 t=3.2',zx:64.8,zy:43.6,ix:405,tw:3.2,h:125,nw:2,wt:9.52},
+      {v:'R150a',l:'RHS 150×75 t=3.2',zx:82.8,zy:44.2,ix:621,tw:3.2,h:150,nw:2,wt:10.8},
+      {v:'R150b',l:'RHS 150×100 t=4.5',zx:127,zy:93.4,ix:953,tw:4.5,h:150,nw:2,wt:16.6},
+      {v:'R200',l:'RHS 200×100 t=4.5',zx:240,zy:95.1,ix:2400,tw:4.5,h:200,nw:2,wt:20.2}
+    ],
+    SHS_BEND_DATA:[
+      {v:'S50',l:'SHS 50×50 t=2.3',zx:11.4,zy:11.4,ix:28.5,tw:2.3,h:50,nw:2,wt:3.34},
+      {v:'S75',l:'SHS 75×75 t=3.2',zx:50.8,zy:50.8,ix:191,tw:3.2,h:75,nw:2,wt:7.01},
+      {v:'S100a',l:'SHS 100×100 t=3.2',zx:120,zy:120,ix:599,tw:3.2,h:100,nw:2,wt:9.52},
+      {v:'S100b',l:'SHS 100×100 t=4.5',zx:163,zy:163,ix:817,tw:4.5,h:100,nw:2,wt:13.1},
+      {v:'S125',l:'SHS 125×125 t=4.5',zx:318,zy:318,ix:1986,tw:4.5,h:125,nw:2,wt:16.6},
+      {v:'S150',l:'SHS 150×150 t=5.0',zx:604,zy:604,ix:4531,tw:5.0,h:150,nw:2,wt:22.3}
+    ],
+    // ชิ้นส่วนโครงถัก — มี A (พื้นที่หน้าตัด) สำหรับเช็คแรงตามแนวแกน
+    TSEC:{
+      rhs:[{l:'RHS 50×25 t1.6',zx:3.39,ix:8.47,A:1.98,wt:1.75},{l:'RHS 75×45 t2.3',zx:13.7,ix:51.4,A:5.29,wt:4.06},{l:'RHS 100×50 t3.2',zx:37.2,ix:186,A:9.09,wt:7.01},{l:'RHS 125×75 t3.2',zx:64.8,ix:405,A:12.8,wt:9.52},{l:'RHS 150×75 t4.5',zx:114,ix:858,A:19.8,wt:14.9},{l:'RHS 200×100 t4.5',zx:240,ix:2400,A:26.5,wt:20.2}],
+      shs:[{l:'SHS 50×50 t2.3',zx:11.4,ix:28.5,A:4.25,wt:3.34},{l:'SHS 75×75 t3.2',zx:50.8,ix:191,A:8.93,wt:7.01},{l:'SHS 100×100 t3.2',zx:120,ix:599,A:12.1,wt:9.52},{l:'SHS 125×125 t4.5',zx:318,ix:1986,A:21.2,wt:16.6},{l:'SHS 150×150 t5.0',zx:604,ix:4531,A:28.4,wt:22.3}],
+      angle:[
+        {l:'L 25×25×3',zx:.74,ix:1.24,A:1.42,wt:1.12},{l:'L 30×30×3',zx:1.11,ix:2.17,A:1.74,wt:1.36},{l:'L 40×40×3',zx:1.97,ix:5.41,A:2.35,wt:1.84},{l:'L 40×40×6',zx:3.55,ix:9.19,A:4.52,wt:3.55},
+        {l:'L 50×50×3',zx:3.11,ix:10.97,A:2.96,wt:2.32},{l:'L 50×50×6',zx:5.81,ix:19.67,A:5.69,wt:4.47},{l:'L 60×60×5',zx:6.35,ix:25.89,A:5.77,wt:4.53},{l:'L 65×65×5',zx:7.54,ix:34.09,A:6.29,wt:4.94},
+        {l:'L 75×75×6',zx:11.0,ix:57.41,A:8.73,wt:6.85},{l:'L 75×75×12',zx:19.99,ix:97.67,A:16.7,wt:13.1},{l:'L 90×90×6',zx:16.30,ix:103.62,A:10.6,wt:8.33},{l:'L 90×90×12',zx:29.75,ix:178.60,A:20.5,wt:16.1},
+        {l:'L 100×100×7',zx:22.0,ix:154.73,A:13.6,wt:10.7},{l:'L 100×100×13',zx:37.5,ix:247.52,A:24.3,wt:19.1},{l:'L 120×120×8',zx:36.1,ix:306.94,A:18.7,wt:14.7},
+        {l:'L 125×125×10',zx:48.1,ix:445,A:24.0,wt:18.9},{l:'L 150×150×10',zx:68.0,ix:714,A:29.0,wt:22.8},{l:'L 175×175×12',zx:106.0,ix:1272,A:40.6,wt:31.9},
+        {l:'L 200×200×15',zx:172.0,ix:2247,A:58.1,wt:45.6},{l:'L 200×200×25',zx:266.0,ix:3294,A:93.3,wt:73.3}
+      ],
+      dangle:[
+        {l:'2L 40×40×3',zx:3.94,ix:10.82,A:4.70,wt:3.68},{l:'2L 50×50×3',zx:6.22,ix:21.94,A:5.92,wt:4.64},{l:'2L 60×60×4',zx:10.36,ix:42.74,A:9.32,wt:7.32},
+        {l:'2L 75×75×6',zx:22.0,ix:114.82,A:17.46,wt:13.7},{l:'2L 90×90×6',zx:32.6,ix:207.24,A:21.2,wt:16.7},{l:'2L 100×100×7',zx:44.0,ix:309.46,A:27.2,wt:21.4},
+        {l:'2L 120×120×8',zx:72.2,ix:613.88,A:37.4,wt:29.4},{l:'2L 150×150×10',zx:136.0,ix:1428,A:58.0,wt:45.6},{l:'2L 200×200×15',zx:344.0,ix:4494,A:116.2,wt:91.2}
+      ],
+      ibeam:[{l:'I 160×76',zx:109,ix:869,A:21.8,wt:17.1},{l:'I 200×100',zx:217,ix:2170,A:30.2,wt:23.7},{l:'I 250×125',zx:385,ix:5310,A:55.5,wt:43.6},{l:'I 300×160',zx:623,ix:12700,A:83.5,wt:65.6},{l:'I 400×160',zx:1200,ix:29300,A:115,wt:90.3}],
+      hbeam:[{l:'H 100×100',zx:76.5,ix:383,A:21.9,wt:17.2},{l:'H 150×150',zx:219,ix:1640,A:40.1,wt:31.5},{l:'H 200×200',zx:472,ix:4720,A:63.5,wt:49.9},{l:'H 250×250',zx:919,ix:11500,A:107,wt:84.0},{l:'H 300×300',zx:1270,ix:20400,A:119,wt:93.5},{l:'H 400×200',zx:1190,ix:23700,A:84.1,wt:66.0}],
+      wf:[{l:'WF 150×75',zx:135,ix:666,A:16.3,wt:12.8},{l:'WF 200×100',zx:184,ix:1840,A:25.6,wt:20.1},{l:'WF 250×125',zx:324,ix:4050,A:35.4,wt:27.8},{l:'WF 300×150',zx:481,ix:7210,A:43.8,wt:34.4},{l:'WF 400×200',zx:1190,ix:23700,A:79.7,wt:62.5}],
+      cutbeam:[{l:'Cut 200×400',zx:472,ix:4720,A:48.4,wt:38.0},{l:'Cut 300×400',zx:623,ix:12700,A:53.5,wt:42.0},{l:'Cut 400×300',zx:1200,ix:23700,A:84.1,wt:66.0}]
+    }
+  };
+
   var COLORS = { green:0x2fbf6e, yellow:0xf0c419, red:0xe5533d };
   var THRESH = { yellow:70, red:90 }; // percent utilization
   var SOLAR_OK_THRESH = 70; // util% (with solar load) below this => เหมาะติดโซล่า
@@ -1113,6 +1378,7 @@
     existingLoad:15, solarLoad:12, Fb:1440,
     trussType:'gable', trussDepth:0.6
   };
+  var DEFAULT_PARAMS = Object.assign({}, params); // เก็บไว้ให้ปุ่ม "รีเซ็ตเป็นค่าเริ่มต้น"
   var TRUSS_TYPES_WITH_RIDGE = { gable:true, gable_sloped:true, inclined:true }; // ใช้ความสูงสันหลังคา (rise) จริง
   var TRUSS_TYPES_WITH_SOLAR_ROOF = { gable:true, gable_sloped:true }; // มีผิวหลังคาลาดสองฝั่งให้วางแผงโซล่าตามแบบเดิม
   var includeSolar = false; // toggle: false = แสดงผลด้วยโหลดเดิมอย่างเดียว, true = โหลดเดิม+โซล่า
@@ -1123,8 +1389,8 @@
   var dimVisible = true; // เส้นบอกขนาด (dimension lines) แสดง/ซ่อน
 
   /* ============ Tabs ============ */
-  var tabBtns = { model: document.getElementById('tabBtnModel'), data: document.getElementById('tabBtnData') };
-  var tabPanels = { model: document.getElementById('tabModel'), data: document.getElementById('tabData') };
+  var tabBtns = { model: document.getElementById('tabBtnModel'), data: document.getElementById('tabBtnData'), formula: document.getElementById('tabBtnFormula') };
+  var tabPanels = { model: document.getElementById('tabModel'), data: document.getElementById('tabData'), formula: document.getElementById('tabFormula') };
   function switchTab(name){
     Object.keys(tabBtns).forEach(function(k){
       tabBtns[k].classList.toggle('active', k===name);
@@ -1138,6 +1404,7 @@
   }
   tabBtns.model.addEventListener('click', function(){ switchTab('model'); });
   tabBtns.data.addEventListener('click', function(){ switchTab('data'); });
+  tabBtns.formula.addEventListener('click', function(){ switchTab('formula'); });
 
   /* ============ Three.js setup ============ */
   var wrap = document.getElementById('canvasWrap');
@@ -1521,7 +1788,194 @@
     var S = d.S>0 ? d.S : 0.0001;
     return M_kgcm / S;
   }
+  /* ============ Engineering calc — แป (ASD, biaxial bending) — Part C ของแผน wiring ============
+     อ้างอิงสูตรจากแท็บ "สูตรคำนวณ" (แก้ ASD ล้วน + เช็คแรงเฉือน/โก่งตัวแล้ว)
+     ยังไม่ครอบคลุมจันทัน/โครงถัก (ยังใช้สูตร beam-bending เดิมด้านล่าง รอ wiring ต่อ) */
+  function getWindLoad(terrain, heightM){
+    if(terrain === 'open') return heightM<=10 ? 100 : heightM<=20 ? 120 : 150;
+    return heightM<=10 ? 50 : heightM<=20 ? 80 : 120;
+  }
+  function getRoofAngleRad(){
+    var span = params.span, rise = params.rise;
+    var isGable = pendingBuildingShape === 'gable';
+    var run = isGable ? span/2 : span;
+    return run>0 ? Math.atan(rise/run) : 0;
+  }
+  function getSagFactor(){
+    var v = pillVal('sagRod');
+    return v==='1' ? 0.5 : v==='2' ? (1/3) : 1.0;
+  }
+  function computeSharedLoads(){
+    var roofWt = parseFloat(pillVal('roofMaterial','weight'));
+    var ceilWt = parseFloat(pillVal('ceiling','weight'));
+    var liveLoad = parseFloat(pillVal('liveLoadYear','weight'));
+    var terrain = pillVal('windTerrain') || 'city';
+    var heightM = params.eave + params.rise;
+    return {
+      roofWt: isNaN(roofWt)?5:roofWt,
+      ceilWt: isNaN(ceilWt)?0:ceilWt,
+      liveLoad: isNaN(liveLoad)?30:liveLoad,
+      terrain: terrain,
+      WL: getWindLoad(terrain, heightM),
+      solarWt: 20 // ล็อคคงที่ตามเครื่องคำนวณเดิม (ตัดสินใจแล้ว — ไม่ใช้ช่อง pSolarLoad ที่แก้ไขได้)
+    };
+  }
+  // ASD load combination: (1) DL+LL, (2a) DL+0.75(LL+WL) ลมกด — governing ของแรงดัด/เฉือนปกติ
+  function getGovCombo(DL, LL, WL){
+    return Math.max(DL+LL, DL+0.75*(LL+WL));
+  }
+  // (2b) 0.6DL−WL ลมดูด (uplift) — เช็คแยกต่างหาก: net ต้องยังเป็นบวก (โครงสร้างไม่ปลิว) — Part D ของแผน wiring
+  function checkUplift(DL, WL){
+    var net = 0.6*DL - WL;
+    return { net: net, safe: net >= 0 };
+  }
+  function computePurlin(d){
+    var shared = computeSharedLoads();
+    var sec = selectedPurlinSection;
+    var mul = (typeof purlinDoubled!=='undefined' && purlinDoubled) ? 2 : 1; // ประกบ 2 ตัว (2C) = กำลังรับ x2, น้ำหนักตัวเอง x2
+    var s = parseFloat(document.getElementById('pPurlinSpacing').value) || 1.2;
+    var L = d.length>0 ? d.length : 0.0001;
+    var selfW = (sec.wt*mul) / s; // kg/m²
+    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + selfW;
+    var govern = getGovCombo(DL, shared.liveLoad, shared.WL);
+    var w = govern * s; // kg/m
+    var theta = getRoofAngleRad();
+    var Ley = L * getSagFactor();
+    var wx = w*Math.cos(theta), wy = w*Math.sin(theta);
+    var Mx = wx*L*L/8, My = wy*Ley*Ley/8;
+    var Fy = params.Fb/0.6, Fv = 0.4*Fy;
+    var Mrx = params.Fb*sec.zx*mul/100, Mry = params.Fb*sec.zy*mul/100; // Fb(kgf/cm²)×Z(cm³)/100 = kgf·m
+    var Vx = wx*L/2;
+    var Av = (sec.h/10)*(sec.tw/10)*(sec.nw||1)*mul; // nw=จำนวนเอวรับแรงเฉือน (RHS/SHS=2, C-Channel=1)
+    var Va = Fv*Av;
+    var Ms = (Mx/Mrx) + (My/Mry);
+    var Vr = Vx/Va;
+    var ratio = Math.max(Ms, Vr);
+    // เช็คโก่งตัว (Deflection) — δ=5wL⁴/(384EI) ≤ L/120 (ใช้ wx แกนแข็ง + L เต็มช่วง ตามเว็บเก่า แต่แก้บั๊กหน่วย Ix×10,000 ออกแล้ว)
+    var E = 2039000; // kgf/cm²
+    var Ix = sec.ix*mul; // cm⁴
+    var Lcm = L*100;
+    var defl = 5*(wx/100)*Math.pow(Lcm,4)/(384*E*Ix); // cm
+    var dlim = Lcm/120; // cm
+    return { pct: ratio*100, Ms:Ms, Vr:Vr, Mx:Mx, My:My, DL:DL, govern:govern, defl:defl, dlim:dlim, deflOk: defl<=dlim };
+  }
+  /* ============ Engineering calc — จันทัน (ASD, uniaxial — รับแรงต่อจากแป) — Part C ของแผน wiring ============
+     w ทั้งหมดฉายลงแนวตั้งฉากกับจันทัน (wx=w·cosθ) เป็นตัวดัด — ส่วน w·sinθ เป็นแรงตามแนวแกน ยังไม่เช็ค (เหมือนเว็บเก่า) */
+  function getRafterSpacing(){
+    return params.bays>0 ? params.length/params.bays : 1;
+  }
+  function computeRafter(d){
+    var shared = computeSharedLoads();
+    var sec = selectedRafterSection;
+    var mul = (typeof rafterDoubled!=='undefined' && rafterDoubled) ? 2 : 1; // C Channel ประกบ (2C)
+    var sr = getRafterSpacing();
+    var Lr = d.length>0 ? d.length : 0.0001;
+    var selfW = (sec.wt*mul) / sr; // kg/m²
+    var purlinSelfW = (selectedPurlinSection.wt * ((typeof purlinDoubled!=='undefined'&&purlinDoubled)?2:1)) / (parseFloat(document.getElementById('pPurlinSpacing').value)||1.2);
+    var DL_r = shared.roofWt + shared.solarWt + shared.ceilWt + purlinSelfW + selfW; // รับต่อจากแป + น้ำหนักตัวเองจันทัน
+    var govern = getGovCombo(DL_r, shared.liveLoad, shared.WL);
+    var theta = getRoofAngleRad();
+    var wTot = govern * sr;
+    var wx = wTot * Math.cos(theta); // ตัวดัดตั้งฉากกับจันทัน
+    var Fy = params.Fb/0.6, Fv = 0.4*Fy;
+    var Mr = params.Fb*sec.zx*mul/100; // kgf·m
+    var Mx = wx*Lr*Lr/8, Vx = wx*Lr/2;
+    var Av = (sec.h/10)*(sec.tw/10)*(sec.nw||1)*mul; // nw=จำนวนเอวรับแรงเฉือน (RHS/SHS=2, C-Channel=1)
+    var Va = Fv*Av;
+    var Ms = Mx/Mr, Vr = Vx/Va;
+    var ratio = Math.max(Ms, Vr);
+    // เช็คโก่งตัว (Deflection) — δ=5wL⁴/(384EI) ≤ L/120
+    var E = 2039000; // kgf/cm²
+    var Ix = sec.ix*mul; // cm⁴
+    var Lcm = Lr*100;
+    var defl = 5*(wx/100)*Math.pow(Lcm,4)/(384*E*Ix); // cm
+    var dlim = Lcm/120; // cm
+    return { pct: ratio*100, Ms:Ms, Vr:Vr, Mx:Mx, DL:DL_r, govern:govern, defl:defl, dlim:dlim, deflOk: defl<=dlim };
+  }
+  /* ============ Engineering calc — โครงถัก (ASD, Axial Force Method + เช็คโก่งเดาะ) — Part C ของแผน wiring ============
+     อ้างอิงสูตรจากแท็บ "สูตรคำนวณ" — F_TC=F_BC=M_max/depth, F_web=R (หรือ R/sin(มุมทแยง) ถ้ามี diagonal — ใช้ค่ามากกว่า = อนุรักษ์นิยม)
+     เช็คทุกชิ้นด้วยสูตร "แรงอัด/โก่งเดาะ" (Fcr/Ωc) เสมอ ไม่ว่าจริงจะดึงหรืออัด เพราะเป็นขอบเขตที่เข้มงวดกว่า (ตัดสินใจแล้วตามแผน wiring) */
+  function getPurlinSelfWPerArea(){
+    var mul = (typeof purlinDoubled!=='undefined' && purlinDoubled) ? 2 : 1;
+    var s = parseFloat(document.getElementById('pPurlinSpacing').value) || 1.2;
+    return (selectedPurlinSection.wt*mul) / s;
+  }
+  function getRafterSelfWPerArea(){
+    var mul = (typeof rafterDoubled!=='undefined' && rafterDoubled) ? 2 : 1;
+    return (selectedRafterSection.wt*mul) / getRafterSpacing();
+  }
+  function computeTrussShared(){
+    var shared = computeSharedLoads();
+    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + getPurlinSelfWPerArea() + getRafterSelfWPerArea();
+    var govern = getGovCombo(DL, shared.liveLoad, shared.WL);
+    var sr = getRafterSpacing();
+    var w = govern * sr; // kgf/m ตลอดช่วงโครงถัก
+    var L = params.span>0 ? params.span : 0.0001;
+    var depth = params.trussDepth>0 ? params.trussDepth : 0.1;
+    var panels = params.panels>0 ? params.panels : 1;
+    var panelLen = L/panels;
+    var M_max = w*L*L/8;
+    var R = w*L/2;
+    var F_TC = M_max/depth;
+    var diagMode = pillVal('diagonalDir') || 'left';
+    var thetaDiag = Math.atan2(depth, panelLen);
+    var F_web = (diagMode === 'none') ? R : Math.max(R, R/Math.sin(thetaDiag));
+    return { F_TC:F_TC, F_web:F_web, R:R, M_max:M_max, DL:DL, govern:govern, WL:shared.WL };
+  }
+  // Part D — เช็คลมดูด (Uplift) แยกต่างหาก ทุกระดับของ load path (DL ไม่ขึ้นกับความยาวชิ้นส่วน เลยเช็คครั้งเดียวพอต่อระดับ)
+  function getPurlinUplift(){
+    var shared = computeSharedLoads();
+    var mul = (typeof purlinDoubled!=='undefined' && purlinDoubled) ? 2 : 1;
+    var s = parseFloat(document.getElementById('pPurlinSpacing').value) || 1.2;
+    var selfW = (selectedPurlinSection.wt*mul) / s;
+    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + selfW;
+    return checkUplift(DL, shared.WL);
+  }
+  function getRafterUplift(){
+    var shared = computeSharedLoads();
+    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + getPurlinSelfWPerArea() + getRafterSelfWPerArea();
+    return checkUplift(DL, shared.WL);
+  }
+  function getTrussUplift(){
+    var t = computeTrussShared();
+    return checkUplift(t.DL, t.WL);
+  }
+  function trussMemberCapacity(sec, Lm){
+    var Fy = params.Fb/0.6;
+    var E = 2039000; // kgf/cm²
+    var OmegaC = 1.67;
+    var A = sec.A>0 ? sec.A : 0.0001;
+    var r = Math.sqrt(sec.ix/A); // cm — รัศมีไจเรชัน
+    var KL = (Lm>0 ? Lm : 0.0001) * 100; // cm (K=1.0)
+    var slender = KL/r;
+    var Fe = (Math.PI*Math.PI*E) / (slender*slender);
+    var limit = 4.71*Math.sqrt(E/Fy);
+    var Fcr = (slender <= limit) ? Math.pow(0.658, Fy/Fe)*Fy : 0.877*Fe;
+    return (Fcr*A) / OmegaC;
+  }
+  function computeTrussMember(d){
+    var t = computeTrussShared();
+    var sec, F;
+    if(d.type === 'topChord'){ sec = selectedTopChordSection; F = t.F_TC; }
+    else if(d.type === 'bottomChord'){ sec = selectedBottomChordSection; F = t.F_TC; }
+    else { sec = selectedWebSection; F = t.F_web; }
+    var Pa = trussMemberCapacity(sec, d.length);
+    var ratio = Pa>0 ? F/Pa : 999;
+    return { pct: ratio*100, F:F, Pa:Pa };
+  }
   function utilizationOf(d){
+    if(d.type === 'purlin' && typeof selectedPurlinSection !== 'undefined'){
+      var rp = computePurlin(d);
+      return { fb: rp.pct/100*params.Fb, Fb: params.Fb, pct: rp.pct, defl:rp.defl, dlim:rp.dlim, deflOk:rp.deflOk };
+    }
+    if(d.type === 'rafter' && typeof selectedRafterSection !== 'undefined'){
+      var rr = computeRafter(d);
+      return { fb: rr.pct/100*params.Fb, Fb: params.Fb, pct: rr.pct, defl:rr.defl, dlim:rr.dlim, deflOk:rr.deflOk };
+    }
+    if((d.type === 'topChord' || d.type === 'bottomChord' || d.type === 'web') && typeof selectedTopChordSection !== 'undefined'){
+      var rt = computeTrussMember(d);
+      return { fb: rt.pct/100*params.Fb, Fb: params.Fb, pct: rt.pct };
+    }
     var fb = computeFb(d);
     var pct = (fb / params.Fb) * 100;
     return { fb:fb, Fb:params.Fb, pct:pct };
@@ -1661,6 +2115,9 @@
     document.getElementById('fcTruss').textContent = groupCount.truss;
     document.getElementById('cntPanels').textContent = totalPanelCount;
     document.getElementById('dataModeNote').textContent = 'โหมดคำนวณ: ' + (includeSolar ? 'โหลดเดิม + โซล่า' : 'โหลดเดิมอย่างเดียว');
+    updatePurlinFixBox();
+    updateRafterFixBox();
+    updateTrussFixBox();
   }
 
   /* ============ Member data (แท็บ ข้อมูล/ตั้งค่า) ============
@@ -2026,11 +2483,12 @@
   /* ============ Truss type selector (เลือกประเภทโครงถัก) ============ */
   var trussTypeGrid = document.getElementById('trussTypeGrid');
   var pendingTrussType = params.trussType; // เลือกไว้ก่อน มีผลจริงตอนกด "สร้าง/อัปเดตแบบจำลอง"
-  function setTrussTypeSelection(type){
+  function setTrussTypeSelection(type, skipRebuild){
     pendingTrussType = type;
     trussTypeGrid.querySelectorAll('.trussTypeCard').forEach(function(card){
       card.classList.toggle('selected', card.dataset.truss===type);
     });
+    if(!skipRebuild) scheduleRebuild();
   }
   trussTypeGrid.querySelectorAll('.trussTypeCard').forEach(function(card){
     card.addEventListener('click', function(){ setTrussTypeSelection(card.dataset.truss); });
@@ -2041,7 +2499,7 @@
   var pendingBuildingShape = 'gable';
   var SHAPE_TRUSS_MAP = { gable:['gable','gable_sloped'], mono:['flat','inclined','cantilever'] };
 
-  function applyTrussShapeFilter(){
+  function applyTrussShapeFilter(skipRebuild){
     var allowed = SHAPE_TRUSS_MAP[pendingBuildingShape];
     var visibleCards = [];
     trussTypeGrid.querySelectorAll('.trussTypeCard').forEach(function(card){
@@ -2050,7 +2508,7 @@
       if(show) visibleCards.push(card);
     });
     if(allowed.indexOf(pendingTrussType) === -1 && visibleCards.length){
-      setTrussTypeSelection(visibleCards[0].dataset.truss);
+      setTrussTypeSelection(visibleCards[0].dataset.truss, skipRebuild);
     }
   }
   function setBuildingShape(shape){
@@ -2081,39 +2539,258 @@
     document.getElementById('calcInclined').textContent = inclined.toFixed(2)+' ม.';
     document.getElementById('calcSpacing').textContent = spacing.toFixed(2)+' ม.';
     document.getElementById('calcAreaPerBay').textContent = areaPerBay.toFixed(1)+' ตร.ม.';
+    updateSharedDot();
   }
-  ['pSpan','pLength','pEave','pRise','pBays'].forEach(function(id){
+  ['pSpan','pLength','pEave','pRise','pBays','pFb'].forEach(function(id){
     document.getElementById(id).addEventListener('input', updateSharedCalc);
   });
 
+  /* ============ สถานะ (จุดสี) บนแท็บย่อย 4 แท็บ — เขียว=ผ่าน แดง=ไม่ผ่าน เทา=ยังไม่ได้กรอกข้อมูล/ข้อมูลไม่ถูกต้อง ============ */
+  function setSubDot(id, state){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('green','red','grey');
+    el.classList.add(state);
+  }
+  function isSharedValid(){
+    var span = parseFloat(document.getElementById('pSpan').value);
+    var length = parseFloat(document.getElementById('pLength').value);
+    var eave = parseFloat(document.getElementById('pEave').value);
+    var rise = parseFloat(document.getElementById('pRise').value);
+    var bays = parseFloat(document.getElementById('pBays').value);
+    var fb = parseFloat(document.getElementById('pFb').value);
+    return span>0 && length>0 && eave>0 && rise>=0 && bays>=1 && fb>0;
+  }
+  function isPurlinValid(){
+    var s = parseFloat(document.getElementById('pPurlinSpacing').value);
+    var ex = parseFloat(document.getElementById('pExistingLoad').value);
+    return isSharedValid() && s>0 && ex>0;
+  }
+  function isRafterValid(){
+    return isPurlinValid(); // จันทันไม่มีฟิลด์ตัวเลขของตัวเอง — รับต่อจากแป/ข้อมูลร่วม
+  }
+  function isTrussValid(){
+    var depth = parseFloat(document.getElementById('pTrussDepth').value);
+    var panels = parseFloat(document.getElementById('pPanels').value);
+    return isRafterValid() && depth>0 && panels>=2;
+  }
+  function updateSharedDot(){
+    setSubDot('dotShared', isSharedValid() ? 'green' : 'grey');
+  }
+
   /* ============ ฟิลด์แสดงผลอย่างเดียว (SAG rod, น้ำหนักกระทำ, เสากลาง, Diagonal ฯลฯ) ============
      ยังไม่ผูกกับสูตรคำนวณ utilization จริง — เก็บ/แสดงผลเพื่อรอเฟสถัดไป */
+  var PURLIN_RAFTER_CAT_DATA = { cchannel: STEEL_SECTIONS.C_DATA, rhs: STEEL_SECTIONS.RHS_BEND_DATA, shs: STEEL_SECTIONS.SHS_BEND_DATA };
+  var PURLIN_RAFTER_CAT_LABELS = { cchannel:'C Channel', rhs:'RHS', shs:'SHS' };
+  var selectedPurlinCategory = 'cchannel';
+  var selectedRafterCategory = 'cchannel';
+  var selectedPurlinSection = STEEL_SECTIONS.C_DATA[0];
+  var selectedRafterSection = STEEL_SECTIONS.C_DATA[0];
+  var purlinDoubled = false;
+  var rafterDoubled = false;
+
+  function bendSizeGridHtml(cat){
+    return PURLIN_RAFTER_CAT_DATA[cat].map(function(s, i){
+      return '<button type="button" class="pillBtn sizeRow'+(i===0?' active':'')+'" data-idx="'+i+'"><span class="szMain">'+s.l+'</span></button>';
+    }).join('');
+  }
+  function renderPurlinRafterSizeGrid(role, cat){
+    var gridEl = document.getElementById(role+'SizeGrid');
+    var labelEl = document.getElementById(role+'SizeLabel');
+    gridEl.innerHTML = bendSizeGridHtml(cat);
+    if(labelEl) labelEl.textContent = 'ขนาด ('+PURLIN_RAFTER_CAT_LABELS[cat]+')';
+  }
+
+  // ============ โครงถัก: หมวดหมู่/ขนาดหน้าตัด ตงบน / ตงล่าง / ค้ำยัน-ทแยง ============
+  var TRUSS_CAT_LABELS = { rhs:'RHS', shs:'SHS', angle:'เหล็กฉาก (L)', dangle:'ฉากประกบ (2L)', ibeam:'I-Beam', hbeam:'H-Beam', wf:'WF', cutbeam:'Cut Beam' };
+  var selectedTopChordCat = 'hbeam', selectedBottomChordCat = 'hbeam', selectedWebCat = 'rhs';
+  var selectedTopChordSection = STEEL_SECTIONS.TSEC.hbeam[0];
+  var selectedBottomChordSection = STEEL_SECTIONS.TSEC.hbeam[0];
+  var selectedWebSection = STEEL_SECTIONS.TSEC.rhs[0];
+
+  function trussCatPillsHtml(activeCat){
+    return Object.keys(TRUSS_CAT_LABELS).map(function(k){
+      return '<button type="button" class="pillBtn'+(k===activeCat?' active':'')+'" data-value="'+k+'">'+TRUSS_CAT_LABELS[k]+'</button>';
+    }).join('');
+  }
+  function trussSizeGridHtml(cat){
+    return STEEL_SECTIONS.TSEC[cat].map(function(s, i){
+      return '<button type="button" class="pillBtn sizeRow'+(i===0?' active':'')+'" data-idx="'+i+'"><span class="szMain">'+s.l+'</span></button>';
+    }).join('');
+  }
+  function renderTrussSizeGrid(role, cat){
+    document.getElementById(role+'SizeGrid').innerHTML = trussSizeGridHtml(cat);
+  }
+  function renderTrussCatGrid(role, curCat){
+    document.getElementById(role+'CatGrid').innerHTML = trussCatPillsHtml(curCat);
+    renderTrussSizeGrid(role, curCat);
+  }
+  renderTrussCatGrid('topChord', selectedTopChordCat);
+  renderTrussCatGrid('bottomChord', selectedBottomChordCat);
+  renderTrussCatGrid('web', selectedWebCat);
+
   document.getElementById('tabData').addEventListener('click', function(e){
     var pill = e.target.closest('.pillBtn, .miniIconCard');
     if(!pill || pill.classList.contains('refOnly')) return;
     var group = pill.closest('.pillRow, .miniIconGrid');
     if(!group) return;
+    var field = group.dataset.field;
+    // หมวดหมู่โครงถัก ต้องสร้าง size grid ใหม่ทั้งอัน (ตัวเลือกเปลี่ยนไปตามหมวดหมู่) — จัดการแยกจาก toggle active ทั่วไป
+    if(field === 'topChordCat' || field === 'bottomChordCat' || field === 'webCat'){
+      var role = field === 'topChordCat' ? 'topChord' : field === 'bottomChordCat' ? 'bottomChord' : 'web';
+      var cat = pill.dataset.value;
+      if(role==='topChord'){ selectedTopChordCat = cat; selectedTopChordSection = STEEL_SECTIONS.TSEC[cat][0]; }
+      else if(role==='bottomChord'){ selectedBottomChordCat = cat; selectedBottomChordSection = STEEL_SECTIONS.TSEC[cat][0]; }
+      else { selectedWebCat = cat; selectedWebSection = STEEL_SECTIONS.TSEC[cat][0]; }
+      renderTrussCatGrid(role, cat);
+      scheduleRebuild();
+      return;
+    }
+    // หมวดหมู่แป/จันทัน (C Channel/RHS/SHS) — สลับชุดข้อมูลจริง (มี zy/tw/h/nw ครบ) แล้วสร้าง size grid ใหม่
+    if(field === 'purlinCategory' || field === 'rafterCategory'){
+      var pr = field === 'purlinCategory' ? 'purlin' : 'rafter';
+      var prCat = pill.dataset.value;
+      group.querySelectorAll('.pillBtn').forEach(function(b){ b.classList.remove('active'); });
+      pill.classList.add('active');
+      if(pr==='purlin'){ selectedPurlinCategory = prCat; selectedPurlinSection = PURLIN_RAFTER_CAT_DATA[prCat][0]; }
+      else { selectedRafterCategory = prCat; selectedRafterSection = PURLIN_RAFTER_CAT_DATA[prCat][0]; }
+      renderPurlinRafterSizeGrid(pr, prCat);
+      scheduleRebuild();
+      return;
+    }
     group.querySelectorAll('.pillBtn, .miniIconCard').forEach(function(b){ b.classList.remove('active'); });
     pill.classList.add('active');
+    if(field === 'purlinSize' && pill.dataset.idx!=null) selectedPurlinSection = PURLIN_RAFTER_CAT_DATA[selectedPurlinCategory][+pill.dataset.idx];
+    if(field === 'rafterSize' && pill.dataset.idx!=null) selectedRafterSection = PURLIN_RAFTER_CAT_DATA[selectedRafterCategory][+pill.dataset.idx];
+    if(field === 'purlinDouble') purlinDoubled = (pill.dataset.value === 'yes');
+    if(field === 'rafterSectionType') rafterDoubled = (pill.dataset.value === '2c');
+    if(field === 'topChordSize' && pill.dataset.idx!=null) selectedTopChordSection = STEEL_SECTIONS.TSEC[selectedTopChordCat][+pill.dataset.idx];
+    if(field === 'bottomChordSize' && pill.dataset.idx!=null) selectedBottomChordSection = STEEL_SECTIONS.TSEC[selectedBottomChordCat][+pill.dataset.idx];
+    if(field === 'webSize' && pill.dataset.idx!=null) selectedWebSection = STEEL_SECTIONS.TSEC[selectedWebCat][+pill.dataset.idx];
     updateLoadSummary();
+    scheduleRebuild(); // ฟิลด์เหล่านี้ป้อนเข้าสูตรคำนวณจริงแล้ว (แป/จันทัน/โครงถัก) — ให้โมเดล 3D อัปเดตสีตาม
   });
 
-  var C_CHANNEL_SIZES = [
-    ['C 60×30×10','1.6'], ['C 75×45×15','2.0'], ['C 75×45×15','2.3'],
-    ['C 90×45×20','2.3'], ['C 90×45×20','3.2'],
-    ['C 100×50×20','2.3'], ['C 100×50×20','3.2'], ['C 100×50×20','4.0'],
-    ['C 125×50×20','3.2'], ['C 125×50×20','4.5'],
-    ['C 150×75×25','3.2'], ['C 150×75×25','4.5'],
-    ['C 200×75×25','3.2'], ['C 200×75×25','4.5'],
-    ['C 250×75×25','4.5']
-  ];
-  function sizeGridHtml(){
-    return C_CHANNEL_SIZES.map(function(s, i){
-      return '<button type="button" class="pillBtn sizeRow'+(i===0?' active':'')+'"><span class="szMain">'+s[0]+'</span><span class="szSub">t = '+s[1]+' มม.</span></button>';
-    }).join('');
+  /* ============ กล่องแนะนำการแก้ไข — แป (แสดงเมื่อชิ้นใดชิ้นหนึ่งเกินพิกัด) ============ */
+  // Part D — แสดงผลเช็คลมดูด (Uplift) ในกล่อง "ผลรวม..." ของแต่ละระดับ
+  function renderUpliftBadge(elId, uplift){
+    var el = document.getElementById(elId);
+    if(!el) return;
+    el.textContent = (uplift.safe ? '✔ ปลอดภัย ' : '⚠ เสี่ยงปลิว ') + uplift.net.toFixed(1) + ' กก./ตร.ม.';
+    el.style.color = uplift.safe ? 'var(--accent)' : 'var(--red)';
   }
-  document.getElementById('purlinSizeGrid').innerHTML = sizeGridHtml();
-  document.getElementById('rafterSizeGrid').innerHTML = sizeGridHtml();
+  // แสดงผลเช็คโก่งตัว (Deflection) — ใช้ค่าจากชิ้นที่แย่ที่สุด (deflection ratio สูงสุด)
+  function renderDeflBadge(elId, worstDefl, worstDlim, deflOk){
+    var el = document.getElementById(elId);
+    if(!el) return;
+    el.textContent = (deflOk ? '✔ ผ่าน ' : '⚠ เกิน ') + worstDefl.toFixed(2) + ' / ' + worstDlim.toFixed(2) + ' ซม.';
+    el.style.color = deflOk ? 'var(--accent)' : 'var(--red)';
+  }
+  function updatePurlinFixBox(){
+    var list = instancesOfType('purlin');
+    if(!list.length) return;
+    var worst = 0, worstDeflRatio = 0, worstDefl = 0, worstDlim = 0.0001;
+    list.forEach(function(d){
+      var u = utilizationOf(d);
+      if(u.pct > worst) worst = u.pct;
+      var dr = u.dlim>0 ? u.defl/u.dlim : 0;
+      if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
+    });
+    var deflOk = worstDeflRatio <= 1;
+    var uplift = getPurlinUplift();
+    var fail = worst >= 100 || !deflOk || !uplift.safe;
+    var el = document.getElementById('purlinResultRatio');
+    var vEl = document.getElementById('purlinResultVerdict');
+    var boxEl = document.getElementById('purlinFixBox');
+    if(el) el.textContent = worst.toFixed(0) + '%';
+    if(vEl){
+      vEl.textContent = fail ? 'ไม่ผ่าน ✘' : 'ผ่าน ✔';
+      vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
+    }
+    if(boxEl) boxEl.style.display = fail ? '' : 'none';
+    renderUpliftBadge('purlinUpliftVal', uplift);
+    renderDeflBadge('purlinDeflVal', worstDefl, worstDlim, deflOk);
+    setSubDot('dotPurlin', !isPurlinValid() ? 'grey' : (fail ? 'red' : 'green'));
+  }
+  function updateRafterFixBox(){
+    var list = instancesOfType('rafter');
+    if(!list.length) return;
+    var worst = 0, worstDeflRatio = 0, worstDefl = 0, worstDlim = 0.0001;
+    list.forEach(function(d){
+      var u = utilizationOf(d);
+      if(u.pct > worst) worst = u.pct;
+      var dr = u.dlim>0 ? u.defl/u.dlim : 0;
+      if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
+    });
+    var deflOk = worstDeflRatio <= 1;
+    var uplift = getRafterUplift();
+    var fail = worst >= 100 || !deflOk || !uplift.safe;
+    var el = document.getElementById('rafterResultRatio');
+    var vEl = document.getElementById('rafterResultVerdict');
+    var boxEl = document.getElementById('rafterFixBox');
+    if(el) el.textContent = worst.toFixed(0) + '%';
+    if(vEl){
+      vEl.textContent = fail ? 'ไม่ผ่าน ✘' : 'ผ่าน ✔';
+      vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
+    }
+    if(boxEl) boxEl.style.display = fail ? '' : 'none';
+    renderUpliftBadge('rafterUpliftVal', uplift);
+    renderDeflBadge('rafterDeflVal', worstDefl, worstDlim, deflOk);
+    setSubDot('dotRafter', !isRafterValid() ? 'grey' : (fail ? 'red' : 'green'));
+  }
+  function updateTrussFixBox(){
+    var list = instancesOfType('topChord').concat(instancesOfType('bottomChord')).concat(instancesOfType('web'));
+    if(!list.length) return;
+    var worst = 0;
+    list.forEach(function(d){
+      var u = utilizationOf(d);
+      if(u.pct > worst) worst = u.pct;
+    });
+    var uplift = getTrussUplift();
+    var fail = worst >= 100 || !uplift.safe;
+    var el = document.getElementById('trussResultRatio');
+    var vEl = document.getElementById('trussResultVerdict');
+    var boxEl = document.getElementById('trussFixBox');
+    if(el) el.textContent = worst.toFixed(0) + '%';
+    if(vEl){
+      vEl.textContent = fail ? 'ไม่ผ่าน ✘' : 'ผ่าน ✔';
+      vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
+    }
+    if(boxEl) boxEl.style.display = fail ? '' : 'none';
+    renderUpliftBadge('trussUpliftVal', uplift);
+    setSubDot('dotTruss', !isTrussValid() ? 'grey' : (fail ? 'red' : 'green'));
+  }
+  // ปุ่มลัดใน "แนะนำการแก้ไข" — ปรับ SAG Rod จริง (ตัวเดียวกับด้านบน) แล้วคำนวณใหม่ทันที
+  var fixSagRodBtnsEl = document.getElementById('fixSagRodBtns');
+  if(fixSagRodBtnsEl){
+    fixSagRodBtnsEl.querySelectorAll('button[data-sagquick]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var val = btn.dataset.sagquick;
+        var realGrid = document.querySelector('[data-field="sagRod"]');
+        if(realGrid){
+          realGrid.querySelectorAll('.miniIconCard').forEach(function(c){
+            c.classList.toggle('active', c.dataset.value === val);
+          });
+        }
+        fixSagRodBtnsEl.querySelectorAll('button[data-sagquick]').forEach(function(b){
+          b.classList.toggle('active', b === btn);
+        });
+        scheduleRebuild();
+      });
+    });
+    // sync ปุ่มลัดให้ตรงกับ SAG Rod จริงตอนเริ่มต้น
+    var realGrid0 = document.querySelector('[data-field="sagRod"]');
+    if(realGrid0){
+      var cur = realGrid0.querySelector('.miniIconCard.active');
+      var curVal = cur ? cur.dataset.value : 'none';
+      fixSagRodBtnsEl.querySelectorAll('button[data-sagquick]').forEach(function(b){
+        b.classList.toggle('active', b.dataset.sagquick === curVal);
+      });
+    }
+  }
+
+  renderPurlinRafterSizeGrid('purlin', selectedPurlinCategory);
+  renderPurlinRafterSizeGrid('rafter', selectedRafterCategory);
 
   /* ---- สรุปน้ำหนักกระทำ (แท็บแป) — คำนวณสดจากตัวเลือกด้านบน ไม่ผูกกับ pExistingLoad ที่ใช้คำนวณจริง ---- */
   function pillVal(field, attr){
@@ -2213,25 +2890,10 @@
   initWizard('rafter');
   initWizard('truss');
 
-  /* ============ Settings (แท็บ ข้อมูล/ตั้งค่า) ============ */
-  function populateSettingsFields(){
-    document.getElementById('pSpan').value = params.span;
-    document.getElementById('pLength').value = params.length;
-    document.getElementById('pEave').value = params.eave;
-    document.getElementById('pRise').value = params.rise;
-    document.getElementById('pBays').value = params.bays;
-    document.getElementById('pPanels').value = params.panels;
-    document.getElementById('pTrussDepth').value = params.trussDepth;
-    document.getElementById('pExistingLoad').value = params.existingLoad;
-    document.getElementById('pSolarLoad').value = params.solarLoad;
-    document.getElementById('pFb').value = params.Fb;
-    setTrussTypeSelection(params.trussType);
-    applyTrussShapeFilter();
-    updateSharedCalc();
-    updateLoadSummary();
-  }
-  document.getElementById('resetSettingsBtn').addEventListener('click', populateSettingsFields);
-  document.getElementById('applySettingsBtn').addEventListener('click', function(){
+  /* ============ Settings (แท็บ ข้อมูล/ตั้งค่า) ============
+     ไม่มีปุ่ม "สร้าง/อัปเดตแบบจำลอง" อีกต่อไป — แก้ค่าฟิลด์ไหนก็ตาม จะ auto-rebuild โมเดล 3D ให้เองแบบหน่วงเวลา (debounce)
+     กันไม่ให้ rebuild ทุกตัวอักษรที่พิมพ์ (จะกระตุก) โดยรอ 400ms หลังหยุดพิมพ์/เปลี่ยนค่าค่อย rebuild จริง */
+  function applySettingsFromFields(){
     params.trussType = pendingTrussType;
     params.span = Math.max(6, parseFloat(document.getElementById('pSpan').value)||20);
     params.length = Math.max(6, parseFloat(document.getElementById('pLength').value)||30);
@@ -2246,6 +2908,39 @@
     rebuildScene();
     frameCamera();
     renderMemberTable();
+  }
+  var rebuildTimer = null;
+  function scheduleRebuild(){
+    if(rebuildTimer) clearTimeout(rebuildTimer);
+    rebuildTimer = setTimeout(function(){ rebuildTimer = null; applySettingsFromFields(); }, 400);
+  }
+  ['pSpan','pLength','pEave','pRise','pBays','pPanels','pTrussDepth','pExistingLoad','pSolarLoad','pFb'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', scheduleRebuild);
+  });
+
+  function populateSettingsFields(skipRebuild){
+    document.getElementById('pSpan').value = params.span;
+    document.getElementById('pLength').value = params.length;
+    document.getElementById('pEave').value = params.eave;
+    document.getElementById('pRise').value = params.rise;
+    document.getElementById('pBays').value = params.bays;
+    document.getElementById('pPanels').value = params.panels;
+    document.getElementById('pTrussDepth').value = params.trussDepth;
+    document.getElementById('pExistingLoad').value = params.existingLoad;
+    document.getElementById('pSolarLoad').value = params.solarLoad;
+    document.getElementById('pFb').value = params.Fb;
+    setTrussTypeSelection(params.trussType, true);
+    applyTrussShapeFilter(true);
+    updateSharedCalc();
+    updateLoadSummary();
+    if(!skipRebuild){
+      if(rebuildTimer){ clearTimeout(rebuildTimer); rebuildTimer = null; }
+      applySettingsFromFields();
+    }
+  }
+  document.getElementById('resetSettingsBtn').addEventListener('click', function(){
+    params = Object.assign({}, DEFAULT_PARAMS);
+    populateSettingsFields(); // เขียนฟิลด์ใหม่ตาม DEFAULT_PARAMS แล้ว rebuild ทันที (ไม่หน่วงเวลา เพราะเป็นการกดยืนยันเอง)
   });
 
   /* ============ Resize ============ */
@@ -2259,9 +2954,7 @@
     }
   }
 
-  populateSettingsFields();
-  rebuildScene();
-  frameCamera();
+  populateSettingsFields(); // เรียกแบบไม่ใส่ skipRebuild -> จะ rebuildScene()+frameCamera() ให้เองในตัว
   animate();
 })();
 </script>
