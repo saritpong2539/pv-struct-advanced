@@ -1966,28 +1966,37 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
   function utilizationOf(d){
     if(d.type === 'purlin' && typeof selectedPurlinSection !== 'undefined'){
       var rp = computePurlin(d);
-      return { fb: rp.pct/100*params.Fb, Fb: params.Fb, pct: rp.pct, defl:rp.defl, dlim:rp.dlim, deflOk:rp.deflOk };
+      return { fb: rp.pct/100*params.Fb, Fb: params.Fb, pct: rp.pct, defl:rp.defl, dlim:rp.dlim, deflOk:rp.deflOk, upliftSafe: getPurlinUplift().safe };
     }
     if(d.type === 'rafter' && typeof selectedRafterSection !== 'undefined'){
       var rr = computeRafter(d);
-      return { fb: rr.pct/100*params.Fb, Fb: params.Fb, pct: rr.pct, defl:rr.defl, dlim:rr.dlim, deflOk:rr.deflOk };
+      return { fb: rr.pct/100*params.Fb, Fb: params.Fb, pct: rr.pct, defl:rr.defl, dlim:rr.dlim, deflOk:rr.deflOk, upliftSafe: getRafterUplift().safe };
     }
     if((d.type === 'topChord' || d.type === 'bottomChord' || d.type === 'web') && typeof selectedTopChordSection !== 'undefined'){
       var rt = computeTrussMember(d);
-      return { fb: rt.pct/100*params.Fb, Fb: params.Fb, pct: rt.pct };
+      return { fb: rt.pct/100*params.Fb, Fb: params.Fb, pct: rt.pct, upliftSafe: getTrussUplift().safe };
     }
     var fb = computeFb(d);
     var pct = (fb / params.Fb) * 100;
     return { fb:fb, Fb:params.Fb, pct:pct };
   }
-  function statusColor(pct){
-    if(pct >= THRESH.red) return COLORS.red;
-    if(pct >= THRESH.yellow) return COLORS.yellow;
+  // รับได้ทั้งตัวเลข pct เดิม หรือ object จาก utilizationOf() (เพื่อรวมเช็คโก่งตัว/ลมดูดเข้าไปในสีด้วย — ให้ตรงกับกล่อง "ผลรวม")
+  function memberFails(u){
+    if(u.pct >= THRESH.red) return true;
+    if(u.deflOk === false) return true;
+    if(u.upliftSafe === false) return true;
+    return false;
+  }
+  function statusColor(u){
+    var o = (typeof u === 'number') ? {pct:u} : u;
+    if(memberFails(o)) return COLORS.red;
+    if(o.pct >= THRESH.yellow) return COLORS.yellow;
     return COLORS.green;
   }
-  function statusKey(pct){
-    if(pct >= THRESH.red) return 'red';
-    if(pct >= THRESH.yellow) return 'yellow';
+  function statusKey(u){
+    var o = (typeof u === 'number') ? {pct:u} : u;
+    if(memberFails(o)) return 'red';
+    if(o.pct >= THRESH.yellow) return 'yellow';
     return 'green';
   }
   function solarUtilPct(d){
@@ -2035,7 +2044,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       var u = utilizationOf(dataStore[id]);
 
       var geo = new THREE.CylinderGeometry(cfg.radius, cfg.radius, lenM, 8, 1);
-      var mat = new THREE.MeshStandardMaterial({ color: statusColor(u.pct), roughness:0.55, metalness:0.25 });
+      var mat = new THREE.MeshStandardMaterial({ color: statusColor(u), roughness:0.55, metalness:0.25 });
       var mesh = new THREE.Mesh(geo, mat);
 
       var mid = a.clone().add(b).multiplyScalar(0.5);
@@ -2059,7 +2068,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       var d = dataStore[mesh.userData.id];
       if(!d) return;
       var u = utilizationOf(d);
-      mesh.material.color.setHex(statusColor(u.pct));
+      mesh.material.color.setHex(statusColor(u));
     });
     refreshHud();
   }
@@ -2102,7 +2111,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(!groupVisible[g]) return;
       visibleTotal++;
       var u = utilizationOf(d);
-      c[statusKey(u.pct)]++;
+      c[statusKey(u)]++;
       if(isSolarSuitable(d)) solarOk++;
     });
     document.getElementById('cntGreen').textContent = c.green;
@@ -2143,7 +2152,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
     var s = {green:0, yellow:0, red:0, solarOk:0, lenMin:Infinity, lenMax:-Infinity};
     list.forEach(function(d){
       var u = utilizationOf(d);
-      s[statusKey(u.pct)]++;
+      s[statusKey(u)]++;
       if(isSolarSuitable(d)) s.solarOk++;
       if(d.length < s.lenMin) s.lenMin = d.length;
       if(d.length > s.lenMax) s.lenMax = d.length;
@@ -2231,7 +2240,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(isS) d.S = val; else d.trib = val;
       var u = utilizationOf(d);
       var mesh = meshList.find(function(m){ return m.userData.id===d.id; });
-      if(mesh) mesh.material.color.setHex(statusColor(u.pct));
+      if(mesh) mesh.material.color.setHex(statusColor(u));
     });
 
     var st = aggregateStats(list);
@@ -2396,7 +2405,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
     var probe = { length:d0.length, S:S, trib:trib };
 
     var u = utilizationOf(probe);
-    var key = statusKey(u.pct);
+    var key = statusKey(u);
     var hexMap = {green:'#2fbf6e', yellow:'#f0c419', red:'#e5533d'};
     document.getElementById('statusSwatch').style.background = hexMap[key];
     document.getElementById('statusPct').textContent = u.pct.toFixed(0)+'%';
@@ -2432,7 +2441,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
 
     var u = utilizationOf(d);
     var mesh = meshList.find(function(m){ return m.userData.id===currentId; });
-    if(mesh) mesh.material.color.setHex(statusColor(u.pct));
+    if(mesh) mesh.material.color.setHex(statusColor(u));
 
     refreshHud();
     closeEditor();
