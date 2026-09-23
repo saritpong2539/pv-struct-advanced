@@ -1161,6 +1161,7 @@
 โหลดออกแบบ (แรงดัด/แรงเฉือนปกติ) = MAX(1, 2a)
 เช็คลมดูด (uplift) แยกต่างหาก = (2b) ต้องยังเป็นบวก (โครงสร้างไม่ปลิว)</div>
         <div class="fieldHelp">⚠️ <b>แก้จากต้นฉบับ:</b> เดิมเขียน "0.6DL+WL" เป็นบวกทั้งคู่ ไม่ชัดว่าเช็คลมดูดหรือไม่ — ของจริง WL ต้องมีเครื่องหมายตามทิศทาง (2b) มีไว้เช็คกรณีลมดูดขึ้นสวนน้ำหนักคงที่ที่ลดลงเหลือ 0.6DL โดยเฉพาะ เป็นตัวคุมสำคัญสำหรับหลังคาเบา (เมทัลชีต) ที่มักปลิวจากลมดูด ไม่ใช่ลมกด</div>
+        <div class="fieldHelp">📌 <b>หมายเหตุ:</b> (2b) ยังคำนวณและแสดงผลให้ดู (ป้าย "เช็คลมดูด" ใต้แต่ละชิ้นส่วน) แต่<b>ไม่นำมานับรวมเป็นเกณฑ์ผ่าน/ไม่ผ่าน</b>ของชิ้นส่วนอีกต่อไป — สีเขียว/เหลือง/แดงและ "ผ่าน/ไม่ผ่าน" อิงจากค่าแรงดัด/แรงเฉือน (fb/Fb) และการโก่งตัวเท่านั้น</div>
       </div>
 
       <div class="dataSection">
@@ -2011,25 +2012,25 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
   function utilizationOf(d){
     if(d.type === 'purlin' && typeof selectedPurlinSection !== 'undefined'){
       var rp = computePurlin(d);
-      return { fb: rp.pct/100*params.Fb, Fb: params.Fb, pct: rp.pct, defl:rp.defl, dlim:rp.dlim, deflOk:rp.deflOk, upliftSafe: getPurlinUplift().safe };
+      return { fb: rp.pct/100*params.Fb, Fb: params.Fb, pct: rp.pct, defl:rp.defl, dlim:rp.dlim, deflOk:rp.deflOk };
     }
     if(d.type === 'rafter' && typeof selectedRafterSection !== 'undefined'){
       var rr = computeRafter(d);
-      return { fb: rr.pct/100*params.Fb, Fb: params.Fb, pct: rr.pct, defl:rr.defl, dlim:rr.dlim, deflOk:rr.deflOk, upliftSafe: getRafterUplift().safe };
+      return { fb: rr.pct/100*params.Fb, Fb: params.Fb, pct: rr.pct, defl:rr.defl, dlim:rr.dlim, deflOk:rr.deflOk };
     }
     if((d.type === 'topChord' || d.type === 'bottomChord' || d.type === 'web') && typeof selectedTopChordSection !== 'undefined'){
       var rt = computeTrussMember(d);
-      return { fb: rt.pct/100*params.Fb, Fb: params.Fb, pct: rt.pct, upliftSafe: getTrussUplift().safe };
+      return { fb: rt.pct/100*params.Fb, Fb: params.Fb, pct: rt.pct };
     }
     var fb = computeFb(d);
     var pct = (fb / params.Fb) * 100;
     return { fb:fb, Fb:params.Fb, pct:pct };
   }
-  // รับได้ทั้งตัวเลข pct เดิม หรือ object จาก utilizationOf() (เพื่อรวมเช็คโก่งตัว/ลมดูดเข้าไปในสีด้วย — ให้ตรงกับกล่อง "ผลรวม")
+  // รับได้ทั้งตัวเลข pct เดิม หรือ object จาก utilizationOf() (เพื่อรวมเช็คโก่งตัวเข้าไปในสีด้วย — ให้ตรงกับกล่อง "ผลรวม")
+  // หมายเหตุ: เช็คลมดูด (uplift) แสดงเป็นข้อมูลแยกต่างหาก (renderUpliftBadge) ไม่นำมานับรวมในผ่าน/ไม่ผ่านแล้ว ตามคำขอผู้ใช้
   function memberFails(u){
     if(u.pct >= THRESH.red) return true;
     if(u.deflOk === false) return true;
-    if(u.upliftSafe === false) return true;
     return false;
   }
   function statusColor(u){
@@ -2752,8 +2753,8 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
     });
     var deflOk = worstDeflRatio <= 1;
-    var uplift = getPurlinUplift();
-    var fail = worst >= 100 || !deflOk || !uplift.safe;
+    var uplift = getPurlinUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
+    var fail = worst >= 100 || !deflOk;
     var el = document.getElementById('purlinResultRatio');
     var vEl = document.getElementById('purlinResultVerdict');
     var boxEl = document.getElementById('purlinFixBox');
@@ -2778,8 +2779,8 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
     });
     var deflOk = worstDeflRatio <= 1;
-    var uplift = getRafterUplift();
-    var fail = worst >= 100 || !deflOk || !uplift.safe;
+    var uplift = getRafterUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
+    var fail = worst >= 100 || !deflOk;
     var el = document.getElementById('rafterResultRatio');
     var vEl = document.getElementById('rafterResultVerdict');
     var boxEl = document.getElementById('rafterFixBox');
@@ -2801,8 +2802,8 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       var u = utilizationOf(d);
       if(u.pct > worst) worst = u.pct;
     });
-    var uplift = getTrussUplift();
-    var fail = worst >= 100 || !uplift.safe;
+    var uplift = getTrussUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
+    var fail = worst >= 100;
     var el = document.getElementById('trussResultRatio');
     var vEl = document.getElementById('trussResultVerdict');
     var boxEl = document.getElementById('trussFixBox');
