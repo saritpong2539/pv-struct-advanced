@@ -768,10 +768,19 @@
         <div class="dataSection">
           <div class="field">
             <label>ประเภทแป</label>
-            <div class="pillRow" data-field="purlinType">
-              <button type="button" class="pillBtn active" data-value="hotrolled">เหล็กรูปพรรณ มอก.</button>
-              <button type="button" class="pillBtn" data-value="zpurlin">เหล็ก Z</button>
-              <button type="button" class="pillBtn" data-value="prefab">แปสำเร็จ</button>
+            <div class="miniIconGrid" data-field="purlinType">
+              <div class="miniIconCard active" data-value="hotrolled">
+                <svg viewBox="0 0 100 60"><path d="M30,10 H70 M50,10 V50 M30,50 H70" fill="none" stroke="#4f8ff0" stroke-width="6" stroke-linecap="round"/></svg>
+                <div class="micLabel">เหล็กรูปพรรณ มอก.</div><div class="micSub">C / RHS / SHS</div>
+              </div>
+              <div class="miniIconCard" data-value="zpurlin">
+                <svg viewBox="0 0 100 60"><path d="M25,12 H75 M75,12 L25,48 M25,48 H75" fill="none" stroke="#4f8ff0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="micLabel">เหล็ก Z</div><div class="micSub">หน้าตัด Z</div>
+              </div>
+              <div class="miniIconCard" data-value="prefab">
+                <svg viewBox="0 0 100 60"><path d="M70,18 V10 H35 V50 H70 V42" fill="none" stroke="#4f8ff0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="micLabel">แปสำเร็จ</div><div class="micSub">C มีปีก (lipped)</div>
+              </div>
             </div>
           </div>
           <div class="field">
@@ -847,9 +856,15 @@
 
           <div class="field">
             <label>ประเภทหน้าตัด</label>
-            <div class="pillRow" data-field="rafterSectionType">
-              <button type="button" class="pillBtn active" data-value="hotrolled">เหล็กรูปพรรณ มอก.</button>
-              <button type="button" class="pillBtn" data-value="2c">C Channel ประกบ (2C)</button>
+            <div class="miniIconGrid" data-field="rafterSectionType">
+              <div class="miniIconCard active" data-value="hotrolled">
+                <svg viewBox="0 0 100 60"><path d="M30,10 H70 M50,10 V50 M30,50 H70" fill="none" stroke="#4f8ff0" stroke-width="6" stroke-linecap="round"/></svg>
+                <div class="micLabel">เหล็กรูปพรรณ มอก.</div><div class="micSub">C / RHS / SHS</div>
+              </div>
+              <div class="miniIconCard" data-value="2c">
+                <svg viewBox="0 0 100 60"><path d="M25,10 H75 M46,10 V50 M54,10 V50 M25,50 H75" fill="none" stroke="#4f8ff0" stroke-width="5" stroke-linecap="round"/></svg>
+                <div class="micLabel">C Channel ประกบ (2C)</div><div class="micSub">เชื่อมประกบคู่</div>
+              </div>
             </div>
           </div>
           <div class="field">
@@ -1380,7 +1395,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
   };
   var DEFAULT_PARAMS = Object.assign({}, params); // เก็บไว้ให้ปุ่ม "รีเซ็ตเป็นค่าเริ่มต้น"
   var TRUSS_TYPES_WITH_RIDGE = { gable:true, gable_sloped:true, inclined:true }; // ใช้ความสูงสันหลังคา (rise) จริง
-  var TRUSS_TYPES_WITH_SOLAR_ROOF = { gable:true, gable_sloped:true }; // มีผิวหลังคาลาดสองฝั่งให้วางแผงโซล่าตามแบบเดิม
   var includeSolar = false; // toggle: false = แสดงผลด้วยโหลดเดิมอย่างเดียว, true = โหลดเดิม+โซล่า
 
   // กลุ่มชิ้นส่วนสำหรับ checklist/ตารางข้อมูล: แป / จันทัน / โครงถัก (ตงบน+ตงล่าง+ค้ำยัน)
@@ -1487,44 +1501,67 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
     return new THREE.Quaternion().setFromRotationMatrix(m);
   }
 
-  // วางแผงโซล่าเซลเต็มพื้นที่หลังคาทั้งสองฝั่ง (เว้นขอบสัน/ชายคา/ปลายจั่วเล็กน้อย)
+  // วางแผงโซล่าเซลเต็มพื้นที่หลังคา (เว้นขอบสัน/ชายคา/ปลายจั่วเล็กน้อย)
+  // จั่ว/จั่วแนวเอียง: 2 ผืนลาดสองฝั่งจากสัน — แนวราบ/ยื่น: 1 ผืนแบนราบ — แนวเอียง: 1 ผืนลาดทางเดียว
+  function solarRoofSides(p){
+    var halfSpan = p.span/2;
+    if(p.trussType==='gable' || p.trussType==='gable_sloped'){
+      var Lslope = Math.sqrt(halfSpan*halfSpan + p.rise*p.rise);
+      var ridge = new THREE.Vector3(0, p.eave + p.rise, 0);
+      return [
+        { origin:ridge, dir:new THREE.Vector3( halfSpan, -p.rise, 0).normalize(), normal:new THREE.Vector3(p.rise,  halfSpan, 0).normalize(), len:Lslope },
+        { origin:ridge, dir:new THREE.Vector3(-halfSpan, -p.rise, 0).normalize(), normal:new THREE.Vector3(-p.rise, halfSpan, 0).normalize(), len:Lslope }
+      ];
+    }
+    if(p.trussType==='flat'){
+      var yFlat = p.eave + p.trussDepth;
+      return [ { origin:new THREE.Vector3(-halfSpan, yFlat, 0), dir:new THREE.Vector3(1,0,0), normal:new THREE.Vector3(0,1,0), len:p.span } ];
+    }
+    if(p.trussType==='cantilever'){
+      var yCant = p.eave + p.trussDepth;
+      return [ { origin:new THREE.Vector3(0, yCant, 0), dir:new THREE.Vector3(1,0,0), normal:new THREE.Vector3(0,1,0), len:p.span } ];
+    }
+    if(p.trussType==='inclined'){
+      var y0 = p.eave + p.trussDepth;
+      var dv = new THREE.Vector3(p.span, p.rise, 0);
+      var Linc = dv.length();
+      return [ { origin:new THREE.Vector3(-halfSpan, y0, 0), dir:dv.clone().normalize(), normal:new THREE.Vector3(-p.rise, p.span, 0).normalize(), len:Linc } ];
+    }
+    return [];
+  }
+
   function buildSolarPanels(p){
     while(solarGroup.children.length) solarGroup.remove(solarGroup.children[0]);
     totalPanelCount = 0;
-    // การวางแผงเต็มผิวหลังคาลาดสองฝั่งแบบนี้ใช้ได้เฉพาะจั่ว/จั่วแนวเอียง (มีสันหลังคาจริง)
-    // แบบแนวราบ/แนวเอียง/ยื่น ยังไม่รองรับการวางแผงอัตโนมัติ — รอพัฒนาเฟสถัดไป
-    if(!TRUSS_TYPES_WITH_SOLAR_ROOF[p.trussType]) return;
 
-    var halfSpan = p.span/2;
-    var Lslope = Math.sqrt(halfSpan*halfSpan + p.rise*p.rise);
     var margin = 0.25;
     var pitchX = 1.02, pitchZ = 1.68;
     var drawX = 0.97, drawZ = 1.62, thickness = 0.035;
-    var nSlope = Math.max(0, Math.floor((Lslope - margin*2) / pitchX));
+
+    var sides = solarRoofSides(p);
     var nLen = Math.max(0, Math.floor((p.length - margin*2) / pitchZ));
-    if(nSlope<=0 || nLen<=0) return;
+    if(!sides.length || nLen<=0) return;
+
+    var perSideN = sides.map(function(side){ return Math.max(0, Math.floor((side.len - margin*2) / pitchX)); });
+    var count = perSideN.reduce(function(sum,n){ return sum + n*nLen; }, 0);
+    if(count<=0) return;
 
     var geo = new THREE.BoxGeometry(drawX, thickness, drawZ);
     var frameMat = new THREE.MeshStandardMaterial({ color:0x717c8a, roughness:0.5, metalness:0.5 });
     var topMat = new THREE.MeshStandardMaterial({ map: panelTexture, color:0xffffff, roughness:0.35, metalness:0.15 });
     var mats = [frameMat, frameMat, topMat, frameMat, frameMat, frameMat];
 
-    var count = nSlope * nLen * 2;
     var inst = new THREE.InstancedMesh(geo, mats, count);
-
-    var sides = [
-      { normal:new THREE.Vector3(p.rise,  halfSpan, 0).normalize(), dir:new THREE.Vector3( halfSpan, -p.rise, 0).normalize() },
-      { normal:new THREE.Vector3(-p.rise, halfSpan, 0).normalize(), dir:new THREE.Vector3(-halfSpan, -p.rise, 0).normalize() }
-    ];
-    var ridge = new THREE.Vector3(0, p.eave + p.rise, 0);
     var dummy = new THREE.Object3D();
     var idx = 0;
 
-    sides.forEach(function(side){
+    sides.forEach(function(side, si){
+      var nSlope = perSideN[si];
+      if(nSlope<=0) return;
       var q = panelQuaternion(side.normal);
       for(var i=0;i<nSlope;i++){
         var t = margin + i*pitchX + pitchX/2;
-        var basePos = ridge.clone().add(side.dir.clone().multiplyScalar(t));
+        var basePos = side.origin.clone().add(side.dir.clone().multiplyScalar(t));
         for(var j=0;j<nLen;j++){
           var pos = basePos.clone();
           pos.z = -p.length/2 + margin + j*pitchZ + pitchZ/2;
@@ -1538,7 +1575,7 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       }
     });
     inst.instanceMatrix.needsUpdate = true;
-    totalPanelCount = count;
+    totalPanelCount = idx;
     solarGroup.add(inst);
     solarGroup.visible = includeSolar;
   }
