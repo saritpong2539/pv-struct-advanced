@@ -814,7 +814,6 @@
           <div class="liveCalcBox" id="purlinResultBox">
             <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="purlinResultRatio">–</div></div>
             <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="purlinResultVerdict">–</div></div>
-            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="purlinUpliftVal">–</div></div>
             <div class="lcItem"><div class="lcLabel">เช็คโก่งตัว (Deflection ≤ L/120)</div><div class="lcVal" id="purlinDeflVal">–</div></div>
           </div>
 
@@ -890,7 +889,6 @@
           <div class="liveCalcBox" id="rafterResultBox">
             <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="rafterResultRatio">–</div></div>
             <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="rafterResultVerdict">–</div></div>
-            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="rafterUpliftVal">–</div></div>
             <div class="lcItem"><div class="lcLabel">เช็คโก่งตัว (Deflection ≤ L/120)</div><div class="lcVal" id="rafterDeflVal">–</div></div>
           </div>
 
@@ -1102,7 +1100,6 @@
           <div class="liveCalcBox" id="trussResultBox">
             <div class="lcItem"><div class="lcLabel">Stress Ratio สูงสุด</div><div class="lcVal" id="trussResultRatio">–</div></div>
             <div class="lcItem"><div class="lcLabel">ผลรวม</div><div class="lcVal" id="trussResultVerdict">–</div></div>
-            <div class="lcItem"><div class="lcLabel">เช็คลมดูด (Uplift, 0.6DL−WL)</div><div class="lcVal" id="trussUpliftVal">–</div></div>
           </div>
           <div class="fixBox" id="trussFixBox" style="display:none;">
             <div class="groupLabel">⚠️ แนะนำการแก้ไข — โครงถักบางชิ้นเกินพิกัด</div>
@@ -1132,7 +1129,7 @@
     <div class="tabPanel" id="tabFormula">
       <div class="dataHead">
         <h1>สูตรคำนวณ</h1>
-        <div class="modeNote">เอกสารอ้างอิง (แก้ไขแล้วเป็น ASD ล้วน) — เชื่อมกับโมเดล 3D จริงแล้ว (แป/จันทัน/โครงถัก + เช็คลมดูด)</div>
+        <div class="modeNote">เอกสารอ้างอิง (แก้ไขแล้วเป็น ASD ล้วน) — เชื่อมกับโมเดล 3D จริงแล้ว (แป/จันทัน/โครงถัก)</div>
       </div>
 
       <div class="disclaimerBox">
@@ -1154,14 +1151,11 @@
       </div>
 
       <div class="dataSection">
-        <h2>Load Combination (ASD — ASCE7 §2.4) — ต้องเช็คทั้งกรณีลมกด และลมดูด</h2>
+        <h2>Load Combination (ASD — ASCE7 §2.4)</h2>
         <div class="formulaBox">(1)  DL + LL
 (2a) DL + 0.75×(LL + WL)      ← WL เป็น + (ลมกดลง)
-(2b) 0.6×DL − WL              ← WL เป็น − (ลมดูดขึ้น = uplift)
-โหลดออกแบบ (แรงดัด/แรงเฉือนปกติ) = MAX(1, 2a)
-เช็คลมดูด (uplift) แยกต่างหาก = (2b) ต้องยังเป็นบวก (โครงสร้างไม่ปลิว)</div>
-        <div class="fieldHelp">⚠️ <b>แก้จากต้นฉบับ:</b> เดิมเขียน "0.6DL+WL" เป็นบวกทั้งคู่ ไม่ชัดว่าเช็คลมดูดหรือไม่ — ของจริง WL ต้องมีเครื่องหมายตามทิศทาง (2b) มีไว้เช็คกรณีลมดูดขึ้นสวนน้ำหนักคงที่ที่ลดลงเหลือ 0.6DL โดยเฉพาะ เป็นตัวคุมสำคัญสำหรับหลังคาเบา (เมทัลชีต) ที่มักปลิวจากลมดูด ไม่ใช่ลมกด</div>
-        <div class="fieldHelp">📌 <b>หมายเหตุ:</b> (2b) ยังคำนวณและแสดงผลให้ดู (ป้าย "เช็คลมดูด" ใต้แต่ละชิ้นส่วน) แต่<b>ไม่นำมานับรวมเป็นเกณฑ์ผ่าน/ไม่ผ่าน</b>ของชิ้นส่วนอีกต่อไป — สีเขียว/เหลือง/แดงและ "ผ่าน/ไม่ผ่าน" อิงจากค่าแรงดัด/แรงเฉือน (fb/Fb) และการโก่งตัวเท่านั้น</div>
+โหลดออกแบบ (แรงดัด/แรงเฉือน) = MAX(1, 2a)</div>
+        <div class="fieldHelp">📌 <b>หมายเหตุ:</b> เดิมมีเช็คลมดูด (uplift, combo 2b: 0.6DL−WL≥0) แยกต่างหากด้วย — เอาออกตามคำขอผู้ใช้ (2026-09-24) ไม่มีการคำนวณ/แสดงผลส่วนนี้แล้วทั้งในโมเดล 3D และเครื่องคำนวณเดิม (index_v2.html)</div>
       </div>
 
       <div class="dataSection">
@@ -1870,11 +1864,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
   function getGovCombo(DL, LL, WL){
     return Math.max(DL+LL, DL+0.75*(LL+WL));
   }
-  // (2b) 0.6DL−WL ลมดูด (uplift) — เช็คแยกต่างหาก: net ต้องยังเป็นบวก (โครงสร้างไม่ปลิว) — Part D ของแผน wiring
-  function checkUplift(DL, WL){
-    var net = 0.6*DL - WL;
-    return { net: net, safe: net >= 0 };
-  }
   function computePurlin(d){
     var shared = computeSharedLoads();
     var sec = selectedPurlinSection;
@@ -1968,24 +1957,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
     var F_web = (diagMode === 'none') ? R : Math.max(R, R/Math.sin(thetaDiag));
     return { F_TC:F_TC, F_web:F_web, R:R, M_max:M_max, DL:DL, govern:govern, WL:shared.WL };
   }
-  // Part D — เช็คลมดูด (Uplift) แยกต่างหาก ทุกระดับของ load path (DL ไม่ขึ้นกับความยาวชิ้นส่วน เลยเช็คครั้งเดียวพอต่อระดับ)
-  function getPurlinUplift(){
-    var shared = computeSharedLoads();
-    var mul = (typeof purlinDoubled!=='undefined' && purlinDoubled) ? 2 : 1;
-    var s = parseFloat(document.getElementById('pPurlinSpacing').value) || 1.2;
-    var selfW = (selectedPurlinSection.wt*mul) / s;
-    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + selfW;
-    return checkUplift(DL, shared.WL);
-  }
-  function getRafterUplift(){
-    var shared = computeSharedLoads();
-    var DL = shared.roofWt + shared.solarWt + shared.ceilWt + getPurlinSelfWPerArea() + getRafterSelfWPerArea();
-    return checkUplift(DL, shared.WL);
-  }
-  function getTrussUplift(){
-    var t = computeTrussShared();
-    return checkUplift(t.DL, t.WL);
-  }
   function trussMemberCapacity(sec, Lm){
     var Fy = params.Fb/0.6;
     var E = 2039000; // kgf/cm²
@@ -2027,7 +1998,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
     return { fb:fb, Fb:params.Fb, pct:pct };
   }
   // รับได้ทั้งตัวเลข pct เดิม หรือ object จาก utilizationOf() (เพื่อรวมเช็คโก่งตัวเข้าไปในสีด้วย — ให้ตรงกับกล่อง "ผลรวม")
-  // หมายเหตุ: เช็คลมดูด (uplift) แสดงเป็นข้อมูลแยกต่างหาก (renderUpliftBadge) ไม่นำมานับรวมในผ่าน/ไม่ผ่านแล้ว ตามคำขอผู้ใช้
   function memberFails(u){
     if(u.pct >= THRESH.red) return true;
     if(u.deflOk === false) return true;
@@ -2728,13 +2698,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
   });
 
   /* ============ กล่องแนะนำการแก้ไข — แป (แสดงเมื่อชิ้นใดชิ้นหนึ่งเกินพิกัด) ============ */
-  // Part D — แสดงผลเช็คลมดูด (Uplift) ในกล่อง "ผลรวม..." ของแต่ละระดับ
-  function renderUpliftBadge(elId, uplift){
-    var el = document.getElementById(elId);
-    if(!el) return;
-    el.textContent = (uplift.safe ? '✔ ปลอดภัย ' : '⚠ เสี่ยงปลิว ') + uplift.net.toFixed(1) + ' กก./ตร.ม.';
-    el.style.color = uplift.safe ? 'var(--accent)' : 'var(--red)';
-  }
   // แสดงผลเช็คโก่งตัว (Deflection) — ใช้ค่าจากชิ้นที่แย่ที่สุด (deflection ratio สูงสุด)
   function renderDeflBadge(elId, worstDefl, worstDlim, deflOk){
     var el = document.getElementById(elId);
@@ -2753,7 +2716,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
     });
     var deflOk = worstDeflRatio <= 1;
-    var uplift = getPurlinUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
     var fail = worst >= 100 || !deflOk;
     var el = document.getElementById('purlinResultRatio');
     var vEl = document.getElementById('purlinResultVerdict');
@@ -2764,7 +2726,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
     }
     if(boxEl) boxEl.style.display = fail ? '' : 'none';
-    renderUpliftBadge('purlinUpliftVal', uplift);
     renderDeflBadge('purlinDeflVal', worstDefl, worstDlim, deflOk);
     setSubDot('dotPurlin', !isPurlinValid() ? 'grey' : (fail ? 'red' : 'green'));
   }
@@ -2779,7 +2740,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       if(dr > worstDeflRatio){ worstDeflRatio = dr; worstDefl = u.defl; worstDlim = u.dlim; }
     });
     var deflOk = worstDeflRatio <= 1;
-    var uplift = getRafterUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
     var fail = worst >= 100 || !deflOk;
     var el = document.getElementById('rafterResultRatio');
     var vEl = document.getElementById('rafterResultVerdict');
@@ -2790,7 +2750,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
     }
     if(boxEl) boxEl.style.display = fail ? '' : 'none';
-    renderUpliftBadge('rafterUpliftVal', uplift);
     renderDeflBadge('rafterDeflVal', worstDefl, worstDlim, deflOk);
     setSubDot('dotRafter', !isRafterValid() ? 'grey' : (fail ? 'red' : 'green'));
   }
@@ -2802,7 +2761,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       var u = utilizationOf(d);
       if(u.pct > worst) worst = u.pct;
     });
-    var uplift = getTrussUplift(); // แสดงผลเป็นข้อมูลเท่านั้น ไม่นับรวมในผ่าน/ไม่ผ่าน
     var fail = worst >= 100;
     var el = document.getElementById('trussResultRatio');
     var vEl = document.getElementById('trussResultVerdict');
@@ -2813,7 +2771,6 @@ Pa_compression = Fcr × A / Ωc             ← ใหม่ทั้งหม�
       vEl.style.color = fail ? 'var(--red)' : 'var(--accent)';
     }
     if(boxEl) boxEl.style.display = fail ? '' : 'none';
-    renderUpliftBadge('trussUpliftVal', uplift);
     setSubDot('dotTruss', !isTrussValid() ? 'grey' : (fail ? 'red' : 'green'));
   }
   // ปุ่มลัดใน "แนะนำการแก้ไข" — ปรับ SAG Rod จริง (ตัวเดียวกับด้านบน) แล้วคำนวณใหม่ทันที
